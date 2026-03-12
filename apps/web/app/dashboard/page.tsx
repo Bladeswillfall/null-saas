@@ -1,15 +1,23 @@
 import { Card, CardBody, CardTitle } from '@null/ui';
 import { createServerTRPCClient } from '@/lib/trpc/server';
 
+async function getHealthStatus() {
+  try {
+    const trpc = await createServerTRPCClient();
+    return await trpc.health.check.query();
+  } catch {
+    return { message: 'Unable to connect', timestamp: new Date().toISOString() };
+  }
+}
+
 export default async function DashboardPage() {
-  const trpc = await createServerTRPCClient();
-  const health = await trpc.health.check.query();
+  const health = await getHealthStatus();
 
   return (
     <main className="stack">
       <div className="page-header">
         <h1>Dashboard</h1>
-        <p className="muted">Manage your IP portfolio, creators, and earnings</p>
+        <p>Manage your IP portfolio, creators, and earnings</p>
       </div>
 
       <section className="grid grid-3">

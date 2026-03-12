@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Fragment } from 'react';
 
 export function Breadcrumbs() {
   const pathname = usePathname();
@@ -29,10 +30,8 @@ export function Breadcrumbs() {
         Dashboard
       </Link>
       {breadcrumbs.map((crumb) => (
-        <div key={crumb.href} className="breadcrumb-separator">/</div>
-      ))}
-      {breadcrumbs.map((crumb) => (
-        <div key={crumb.href}>
+        <Fragment key={crumb.href}>
+          <span className="breadcrumb-separator">/</span>
           {crumb.isLast ? (
             <span className="breadcrumb-current">{crumb.label}</span>
           ) : (
@@ -40,7 +39,7 @@ export function Breadcrumbs() {
               {crumb.label}
             </Link>
           )}
-        </div>
+        </Fragment>
       ))}
     </nav>
   );

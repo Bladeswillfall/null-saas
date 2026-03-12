@@ -7,12 +7,15 @@ export interface CreateContextOptions {
 }
 
 export interface Context {
-  db: typeof db;
+  db: NonNullable<typeof db>;
   supabase: SupabaseClient;
   user: User | null;
 }
 
 export function createContext(opts: CreateContextOptions): Context {
+  if (!db) {
+    throw new Error('Database connection not available. Check POSTGRES_URL environment variable.');
+  }
   return {
     db,
     supabase: opts.supabase,
