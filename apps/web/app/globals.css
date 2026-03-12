@@ -1,18 +1,17 @@
 :root {
-  --background: oklch(2% 0 0);
-  --surface: oklch(4% 0 0);
-  --surface-muted: oklch(6% 0 0);
-  --foreground: oklch(95% 0 0);
-  --muted: oklch(55% 0 0);
-  --accent: oklch(72% 0.08 195);
-  --accent-strong: oklch(68% 0.1 195);
-  --accent-blue: oklch(55% 0 0);
-  --accent-pink: oklch(60% 0 0);
-  --accent-green: oklch(55% 0 0);
-  --accent-orange: oklch(60% 0 0);
-  --border: oklch(8% 0 0);
-  --radius: 18px;
-  --shadow: 0 16px 40px oklch(0% 0 0 / 0.5);
+  --background: oklch(1% 0 0);
+  --surface: oklch(3% 0 0);
+  --surface-alt: oklch(5% 0 0);
+  --foreground: oklch(96% 0 0);
+  --muted: oklch(50% 0 0);
+  --accent: oklch(68% 0.15 200);
+  --accent-strong: oklch(65% 0.18 200);
+  --secondary: oklch(45% 0.04 260);
+  --border: oklch(6% 0 0);
+  --radius: 8px;
+  --shadow-sm: 0 4px 12px oklch(0% 0 0 / 0.4);
+  --shadow-md: 0 8px 24px oklch(0% 0 0 / 0.5);
+  --shadow-lg: 0 16px 40px oklch(0% 0 0 / 0.6);
 }
 
 * {
@@ -24,9 +23,13 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  background: oklch(2% 0 0);
+  background: var(--background);
   color: var(--foreground);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
@@ -55,22 +58,26 @@ main {
 }
 
 .hero {
-  padding: 1.5rem;
+  padding: 2rem;
   border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 6px);
-  background: oklch(4% 0 0);
-  box-shadow: var(--shadow);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
 }
 
 .hero h1 {
-  margin: 0;
-  font-size: clamp(2rem, 3.6vw, 4rem);
-  line-height: 1;
+  margin: 0 0 1rem 0;
+  font-size: 2.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .hero p {
   color: var(--muted);
-  max-width: 70ch;
+  margin: 0 0 1.5rem 0;
+  max-width: 65ch;
+  line-height: 1.6;
 }
 
 .nav {
@@ -85,19 +92,23 @@ main {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.35rem 0.75rem;
+  padding: 0.4rem 0.8rem;
   border-radius: 999px;
-  background: var(--accent) / 0.15;
-  border: 1px solid var(--accent) / 0.4;
+  background: var(--accent) / 0.12;
+  border: 1px solid var(--accent) / 0.35;
   color: var(--accent);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .kicker {
   color: var(--accent);
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  font-weight: 600;
 }
 
 .muted {
@@ -110,44 +121,58 @@ main {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.8rem 1rem;
-  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
   border: 1px solid transparent;
   font-weight: 600;
+  font-size: 0.875rem;
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
 .null-ui-button--primary {
-  background: linear-gradient(180deg, var(--accent), var(--accent-strong));
-  color: white;
+  background: var(--accent);
+  color: var(--background);
+  border-color: var(--accent);
+}
+
+.null-ui-button--primary:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  box-shadow: 0 0 0 2px var(--accent) / 0.3;
 }
 
 .null-ui-button--secondary {
-  background: oklch(5% 0 0);
+  background: var(--surface-alt);
   color: var(--foreground);
   border-color: var(--border);
 }
 
+.null-ui-button--secondary:hover {
+  background: oklch(7% 0 0);
+  border-color: var(--accent) / 0.5;
+}
+
 .null-ui-button:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .null-ui-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border-radius: 10px;
+  border-radius: var(--radius);
   border: 1px solid var(--border);
-  background: oklch(4% 0 0);
+  background: var(--surface);
   color: var(--foreground);
-  font-size: 1rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  font-size: 0.875rem;
+  transition: all 0.15s ease;
 }
 
 .null-ui-input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent) / 0.2;
+  box-shadow: 0 0 0 2px var(--accent) / 0.25;
 }
 
 .null-ui-input::placeholder {
@@ -156,7 +181,7 @@ main {
 }
 
 .null-ui-input--error {
-  border-color: var(--accent-pink);
+  border-color: oklch(60% 0.1 30);
 }
 
 .null-ui-label {
@@ -219,11 +244,32 @@ main {
 
 .auth-error {
   padding: 0.75rem 1rem;
-  border-radius: 10px;
-  background: oklch(35% 0 0 / 0.3);
-  border: 1px solid oklch(45% 0 0);
-  color: oklch(80% 0 0);
+  border-radius: var(--radius);
+  background: oklch(50% 0 0 / 0.08);
+  border: 1px solid oklch(50% 0 0 / 0.3);
+  color: oklch(85% 0 0);
   font-size: 0.875rem;
+}
+
+.auth-social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.auth-social-btn:hover {
+  background: var(--surface-alt);
+  border-color: var(--accent) / 0.5;
 }
 
 .auth-divider {

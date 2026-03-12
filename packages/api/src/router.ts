@@ -2,11 +2,17 @@ import { router } from './trpc';
 import { healthRouter } from './routers/health';
 import { organizationRouter } from './routers/organization';
 import { workspaceRouter } from './routers/workspace';
+import { subsidiaryRouter } from './routers/subsidiary';
+import { ipRouter } from './routers/ip';
+import { creatorRouter } from './routers/creator';
 
 export const appRouter = router({
   health: healthRouter,
   organization: organizationRouter,
-  workspace: workspaceRouter
+  workspace: workspaceRouter,
+  subsidiary: subsidiaryRouter,
+  ip: ipRouter,
+  creator: creatorRouter
 });
 
 export type AppRouter = typeof appRouter;
