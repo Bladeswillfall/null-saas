@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { CreatorsList } from './components/creators-list';
 
 export const metadata: Metadata = {
   title: 'Creators - NULL SaaS',
@@ -10,11 +11,9 @@ export default function CreatorsPage() {
     <main className="stack">
       <div className="page-header">
         <h1>Creators</h1>
-        <p className="muted">Manage creator profiles and verify contributions</p>
+        <p>Manage creator profiles and verify contributions</p>
       </div>
-      <div style={{ padding: '2rem', background: 'var(--surface)', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
-        <p className="muted">Creators management page coming soon</p>
-      </div>
+      <CreatorsList />
     </main>
   );
 }

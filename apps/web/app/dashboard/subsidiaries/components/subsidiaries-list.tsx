@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
+import { useOrganization } from '@/lib/context/organization-context';
 
 interface Subsidiary {
   id: string;
@@ -10,20 +11,28 @@ interface Subsidiary {
   createdAt: Date;
 }
 
-export function SubsidiariesList({ organizationId }: { organizationId: string }) {
-  const [subsidiaries, setSubsidiaries] = useState<Subsidiary[]>([]);
+export function SubsidiariesList() {
+  const { organization } = useOrganization();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ name: '', description: '' });
 
-  const { data: list } = trpc.subsidiary.list.useQuery({ organizationId });
-  const createMutation = trpc.subsidiary.create.useMutation();
-  const deleteMutation = trpc.subsidiary.delete.useMutation();
+  const utils = trpc.useUtils();
+  const { data: list, isLoading } = trpc.subsidiary.list.useQuery(
+    { organizationId: organization?.id ?? '' },
+    { enabled: !!organization }
+  );
+  const createMutation = trpc.subsidiary.create.useMutation({
+    onSuccess: () => utils.subsidiary.list.invalidate()
+  });
+  const deleteMutation = trpc.subsidiary.delete.useMutation({
+    onSuccess: () => utils.subsidiary.list.invalidate()
+  });
 
   const handleCreate = async () => {
-    if (!formData.name) return;
+    if (!formData.name || !organization) return;
 
     await createMutation.mutateAsync({
-      organizationId,
+      organizationId: organization.id,
       name: formData.name,
       description: formData.description || undefined
     });
@@ -118,7 +127,13 @@ export function SubsidiariesList({ organizationId }: { organizationId: string })
         ))}
       </div>
 
-      {list && list.length === 0 && !showForm && (
+      {isLoading && (
+        <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted)' }}>
+          <p>Loading subsidiaries...</p>
+        </div>
+      )}
+
+      {!isLoading && list && list.length === 0 && !showForm && (
         <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted)' }}>
           <p>No subsidiaries yet. Create one to get started.</p>
         </div>

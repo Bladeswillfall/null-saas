@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { AgreementsList } from './components/agreements-list';
 
 export const metadata: Metadata = {
   title: 'Agreements - NULL SaaS',
@@ -10,11 +11,9 @@ export default function AgreementsPage() {
     <main className="stack">
       <div className="page-header">
         <h1>Agreements</h1>
-        <p className="muted">Configure creator agreements, terms, and payout rates</p>
+        <p>Configure creator agreements, terms, and payout rates</p>
       </div>
-      <div style={{ padding: '2rem', background: 'var(--surface)', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
-        <p className="muted">Agreements management page coming soon</p>
-      </div>
+      <AgreementsList />
     </main>
   );
 }
