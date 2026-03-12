@@ -1,16 +1,16 @@
 :root {
-  --background: oklch(3% 0 0);
-  --surface: oklch(5% 0 0);
-  --surface-muted: oklch(7% 0 0);
-  --foreground: oklch(95% 0.02 260);
-  --muted: oklch(65% 0.05 260);
-  --accent: oklch(72% 0.12 280);
-  --accent-strong: oklch(65% 0.15 280);
-  --accent-blue: oklch(70% 0.1 240);
-  --accent-pink: oklch(75% 0.1 20);
-  --accent-green: oklch(72% 0.1 150);
-  --accent-orange: oklch(72% 0.12 40);
-  --border: oklch(10% 0 0);
+  --background: oklch(2% 0 0);
+  --surface: oklch(4% 0 0);
+  --surface-muted: oklch(6% 0 0);
+  --foreground: oklch(95% 0 0);
+  --muted: oklch(60% 0.02 260);
+  --accent: oklch(75% 0.18 195);
+  --accent-strong: oklch(70% 0.2 190);
+  --accent-blue: oklch(70% 0.15 190);
+  --accent-pink: oklch(75% 0.15 25);
+  --accent-green: oklch(75% 0.18 160);
+  --accent-orange: oklch(75% 0.18 50);
+  --border: oklch(8% 0 0);
   --radius: 18px;
   --shadow: 0 16px 40px oklch(0% 0 0 / 0.5);
 }
@@ -87,9 +87,9 @@ main {
   gap: 0.5rem;
   padding: 0.35rem 0.75rem;
   border-radius: 999px;
-  background: oklch(72% 0.12 280 / 0.15);
-  border: 1px solid oklch(72% 0.12 280 / 0.3);
-  color: oklch(85% 0.08 280);
+  background: var(--accent) / 0.15;
+  border: 1px solid var(--accent) / 0.4;
+  color: var(--accent);
   font-size: 0.875rem;
 }
 
@@ -147,7 +147,7 @@ main {
 .null-ui-input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px oklch(72% 0.12 280 / 0.2);
+  box-shadow: 0 0 0 3px var(--accent) / 0.2;
 }
 
 .null-ui-input::placeholder {
