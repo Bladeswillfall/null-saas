@@ -1,0 +1,23 @@
+name: Feature request
+description: Propose a small, single-purpose feature
+title: "feat: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are we solving?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Proposed scope
+      description: Keep this narrow. One feature, one layer, one migration set.
+    validations:
+      required: true
+  - type: textarea
+    id: desktop
+    attributes:
+      label: Desktop impact
+      description: Explain whether this stays shared or becomes host-specific later.

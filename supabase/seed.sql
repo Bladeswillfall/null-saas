@@ -1,0 +1,1 @@
+-- Keep seed data minimal. Add demo data only when it helps local development.
