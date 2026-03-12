@@ -1,5 +1,5 @@
 // Client-side exports
-export { trpc } from './provider';
+export { trpc, TRPCProvider } from './provider';
 
 // Server-side exports
 export { createServerTRPCClient } from './server';

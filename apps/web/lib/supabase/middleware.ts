@@ -3,7 +3,7 @@ import type { Database } from '@null/db-types';
 import { NextResponse, type NextRequest } from 'next/server';
 import { clientEnv } from '../env';
 
-const protectedRoutes = ['/dashboard'];
+const protectedRoutes = ['/dashboard', '/onboarding'];
 const authRoutes = ['/auth/login', '/auth/sign-up'];
 
 export async function updateSession(request: NextRequest) {
