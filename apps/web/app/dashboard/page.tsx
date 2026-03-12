@@ -1,9 +1,10 @@
-import { getHealth } from '@null/api-client';
 import { listStarterFeatures } from '@null/domain';
 import { Card, CardBody, CardTitle } from '@null/ui';
+import { createServerTRPCClient } from '@/lib/trpc/server';
 
 export default async function DashboardPage() {
-  const health = await getHealth('');
+  const trpc = await createServerTRPCClient();
+  const health = await trpc.health.check.query();
   const features = listStarterFeatures();
 
   return (
@@ -17,20 +18,21 @@ export default async function DashboardPage() {
           <CardBody>
             <CardTitle>Platform health</CardTitle>
             <p className="muted">{health.message}</p>
+            <p className="muted text-xs">{health.timestamp}</p>
           </CardBody>
         </Card>
 
         <Card>
           <CardBody>
             <CardTitle>Shared packages</CardTitle>
-            <p className="muted">Domain, UI, API client, DB types, and desktop bridge are already separated.</p>
+            <p className="muted">Domain, UI, API, DB (Drizzle), DB types, and desktop bridge are now separated.</p>
           </CardBody>
         </Card>
 
         <Card>
           <CardBody>
-            <CardTitle>Desktop future</CardTitle>
-            <p className="muted">Tauri stays a host shell. Optional Bun sidecars remain outside product core.</p>
+            <CardTitle>tRPC + Drizzle</CardTitle>
+            <p className="muted">Type-safe API layer with tRPC and Drizzle ORM for database queries.</p>
           </CardBody>
         </Card>
       </section>
