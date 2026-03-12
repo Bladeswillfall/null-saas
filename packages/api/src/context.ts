@@ -1,14 +1,18 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 import { db } from '@null/db';
 
+// Use generic type to accept any typed SupabaseClient
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnySupabaseClient = SupabaseClient<any, any, any>;
+
 export interface CreateContextOptions {
-  supabase: SupabaseClient;
+  supabase: AnySupabaseClient;
   user: User | null;
 }
 
 export interface Context {
   db: NonNullable<typeof db>;
-  supabase: SupabaseClient;
+  supabase: AnySupabaseClient;
   user: User | null;
 }
 
