@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
+import { useOrganization } from '@/lib/context/organization-context';
 
 interface IP {
   id: string;
@@ -11,7 +12,8 @@ interface IP {
   createdAt: Date;
 }
 
-export function IPsList({ organizationId, subsidiaryId }: { organizationId: string; subsidiaryId?: string }) {
+export function IPsList({ subsidiaryId }: { subsidiaryId?: string } = {}) {
+  const { organization } = useOrganization();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -20,21 +22,31 @@ export function IPsList({ organizationId, subsidiaryId }: { organizationId: stri
     status: 'active'
   });
 
-  const { data: subsidiaries } = trpc.subsidiary.list.useQuery({ organizationId });
-  const { data: list } = subsidiaryId
+  const utils = trpc.useUtils();
+  const { data: subsidiaries } = trpc.subsidiary.list.useQuery(
+    { organizationId: organization?.id ?? '' },
+    { enabled: !!organization }
+  );
+  const { data: list, isLoading } = subsidiaryId
     ? trpc.ip.listBySubsidiary.useQuery({ subsidiaryId })
-    : trpc.ip.list.useQuery({ organizationId });
+    : trpc.ip.list.useQuery(
+        { organizationId: organization?.id ?? '' },
+        { enabled: !!organization }
+      );
 
-  const createMutation = trpc.ip.create.useMutation();
-  const deleteMutation = trpc.ip.delete.useMutation();
-  const updateMutation = trpc.ip.update.useMutation();
+  const createMutation = trpc.ip.create.useMutation({
+    onSuccess: () => utils.ip.list.invalidate()
+  });
+  const deleteMutation = trpc.ip.delete.useMutation({
+    onSuccess: () => utils.ip.list.invalidate()
+  });
 
   const handleCreate = async () => {
-    if (!formData.title || !formData.subsidiaryId) return;
+    if (!formData.title || !formData.subsidiaryId || !organization) return;
 
     await createMutation.mutateAsync({
       subsidiaryId: formData.subsidiaryId,
-      organizationId,
+      organizationId: organization.id,
       title: formData.title,
       description: formData.description || undefined,
       status: 'active'
@@ -162,7 +174,13 @@ export function IPsList({ organizationId, subsidiaryId }: { organizationId: stri
         ))}
       </div>
 
-      {list && list.length === 0 && !showForm && (
+      {isLoading && (
+        <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted)' }}>
+          <p>Loading IPs...</p>
+        </div>
+      )}
+
+      {!isLoading && list && list.length === 0 && !showForm && (
         <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted)' }}>
           <p>No IPs yet. Create one to get started.</p>
         </div>
