@@ -1,6 +1,5 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { TRPCProvider } from '@/lib/trpc';
 
 export const metadata: Metadata = {
   title: 'NULL SaaS Starter',
@@ -10,9 +9,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>
-        <TRPCProvider>{children}</TRPCProvider>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
