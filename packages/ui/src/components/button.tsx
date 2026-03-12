@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, AnchorHTMLAttributes, PropsWithChildren } from 'react';
+import type { ButtonHTMLAttributes, PropsWithChildren, ReactElement } from 'react';
 import { cloneElement, isValidElement } from 'react';
 import { cn } from '../lib/cn';
 
@@ -21,8 +21,9 @@ export function Button({ children, variant = 'primary', asChild, className, ...p
   const mergedClassName = cn(buttonClass(variant), className);
 
   if (asChild && isValidElement(children)) {
-    return cloneElement(children, {
-      className: cn((children.props as AnchorHTMLAttributes<HTMLAnchorElement>).className, mergedClassName)
+    const child = children as ReactElement<{ className?: string }>;
+    return cloneElement(child, {
+      className: cn(child.props.className, mergedClassName)
     });
   }
 
