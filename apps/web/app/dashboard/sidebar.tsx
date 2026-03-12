@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 
 interface NavItem {
   label: string;
@@ -21,6 +22,14 @@ const navItems: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/');
+    router.refresh();
+  };
 
   return (
     <aside className="sidebar" aria-label="Main navigation">
@@ -44,6 +53,13 @@ export function Sidebar() {
               </Link>
             );
           })}
+        </div>
+
+        <div className="sidebar-footer">
+          <button className="sidebar-link" onClick={handleSignOut} type="button">
+            <span className="sidebar-icon">↪</span>
+            <span className="sidebar-label">Sign out</span>
+          </button>
         </div>
       </nav>
     </aside>

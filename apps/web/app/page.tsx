@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { Card, CardBody, CardTitle, Button } from '@null/ui';
+import { createClient } from '@/lib/supabase/server';
 
 const pillars = [
   {
@@ -23,12 +25,20 @@ const benefits = [
   { stat: 'Zero config', label: 'tRPC + React Query setup' }
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Redirect authenticated users to dashboard
+  if (user) {
+    redirect('/dashboard');
+  }
+
   return (
     <main className="stack">
       <div className="nav">
         <span className="badge">NULL starter / modern foundation</span>
-        <Link href="/dashboard">View Dashboard</Link>
+        <Link href="/auth/login">Sign in</Link>
       </div>
 
       <section className="hero stack">
@@ -41,12 +51,10 @@ export default function HomePage() {
         </p>
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <Button asChild>
-            <Link href="/dashboard">Explore dashboard</Link>
+            <Link href="/auth/sign-up">Get started</Link>
           </Button>
           <Button variant="secondary" asChild>
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer">
-              View on GitHub
-            </a>
+            <Link href="/auth/login">Sign in</Link>
           </Button>
         </div>
       </section>
@@ -80,15 +88,15 @@ export default function HomePage() {
       <section className="stack">
         <div>
           <h2 style={{ marginTop: 0, marginBottom: '0.5rem' }}>Get started in minutes</h2>
-          <p className="muted">Clone the repo, run the dev server, and start building.</p>
+          <p className="muted">Create an account and start building your SaaS application.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <Button asChild>
-            <Link href="/dashboard">Start building</Link>
+            <Link href="/auth/sign-up">Create account</Link>
           </Button>
           <Button variant="secondary" asChild>
             <a href="https://github.com" target="_blank" rel="noopener noreferrer">
-              Read the docs
+              View on GitHub
             </a>
           </Button>
         </div>

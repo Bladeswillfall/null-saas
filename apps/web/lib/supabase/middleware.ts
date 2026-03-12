@@ -3,6 +3,9 @@ import type { Database } from '@null/db-types';
 import { NextResponse, type NextRequest } from 'next/server';
 import { clientEnv } from '../env';
 
+const protectedRoutes = ['/dashboard'];
+const authRoutes = ['/auth/login', '/auth/sign-up'];
+
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -24,7 +27,18 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+  const pathname = request.nextUrl.pathname;
+
+  // Redirect authenticated users away from auth pages to dashboard
+  if (user && authRoutes.some(route => pathname.startsWith(route))) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  // Redirect unauthenticated users away from protected routes to login
+  if (!user && protectedRoutes.some(route => pathname.startsWith(route))) {
+    return NextResponse.redirect(new URL('/auth/login', request.url));
+  }
 
   return response;
 }

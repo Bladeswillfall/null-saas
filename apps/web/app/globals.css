@@ -122,6 +122,21 @@ main {
   flex: 1;
 }
 
+.sidebar-footer {
+  margin-top: auto;
+  padding: 1rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.sidebar-footer button {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
 .dashboard-main {
   margin-left: 260px;
   flex: 1;
