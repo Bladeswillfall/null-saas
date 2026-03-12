@@ -13,6 +13,8 @@ A clean monorepo starter for NULL with one canonical web app today and a thin Ta
 ## Stack
 
 - **Web shell:** Next.js App Router + React + TypeScript
+- **API layer:** tRPC for end-to-end type-safe APIs
+- **ORM:** Drizzle ORM for type-safe database queries
 - **Backend platform:** Supabase
 - **Database:** Supabase Postgres + SQL migrations + RLS
 - **Server functions:** Supabase Edge Functions
@@ -27,7 +29,9 @@ apps/
   web/                  # current product shell
   desktop/              # future Tauri shell templates and notes
 packages/
-  api-client/           # typed fetch wrappers
+  api/                  # tRPC router, procedures, and context
+  api-client/           # typed fetch wrappers (legacy)
+  db/                   # Drizzle ORM client and schema
   db-types/             # generated Supabase types
   desktop-bridge/       # interface between product code and host shell
   domain/               # pure business types and rules
