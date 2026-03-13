@@ -30,9 +30,9 @@ export default async function DashboardLayout({
     organizations = await trpc.organization.list.query();
   } catch (error) {
     console.error('Dashboard organization load failed:', error);
-    throw new Error(
-      'Failed to load dashboard organizations. Check POSTGRES_URL/DATABASE_URL and database migrations.'
-    );
+    // On DB error, redirect to onboarding where user can try again
+    // This prevents the infinite error loop
+    redirect('/onboarding?error=db');
   }
 
   // If user has no organizations, redirect to onboarding
