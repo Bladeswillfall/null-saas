@@ -1,21 +1,45 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
+import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import postgres, { type Sql } from 'postgres';
 import * as schema from './schema';
 
-const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL || '';
+// Singleton instances - lazily initialized
+let queryClientInstance: Sql | null = null;
+let dbInstance: PostgresJsDatabase<typeof schema> | null = null;
 
-// Connection for queries (with pooling)
-// Only create if connection string is available
-const queryClient = connectionString
-  ? postgres(connectionString, {
+function getConnectionString(): string {
+  return process.env.POSTGRES_URL || process.env.DATABASE_URL || '';
+}
+
+// Lazy getter for postgres client
+export function getQueryClient(): Sql | null {
+  const connectionString = getConnectionString();
+  if (!connectionString) {
+    return null;
+  }
+  
+  if (!queryClientInstance) {
+    queryClientInstance = postgres(connectionString, {
       max: 10,
       idle_timeout: 20,
       connect_timeout: 10
-    })
-  : null;
+    });
+  }
+  return queryClientInstance;
+}
 
-// Drizzle instance with schema
-export const db = queryClient ? drizzle(queryClient, { schema }) : null;
+// Lazy getter for drizzle instance
+export function getDb(): PostgresJsDatabase<typeof schema> | null {
+  const client = getQueryClient();
+  if (!client) {
+    return null;
+  }
+  
+  if (!dbInstance) {
+    dbInstance = drizzle(client, { schema });
+  }
+  return dbInstance;
+}
 
-// Export the raw postgres client for advanced use cases
-export { queryClient };
+// For backward compatibility - use getters internally
+export const queryClient = null as Sql | null; // Deprecated: use getQueryClient()
+export const db = null as PostgresJsDatabase<typeof schema> | null; // Deprecated: use getDb()

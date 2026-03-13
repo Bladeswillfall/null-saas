@@ -1,14 +1,22 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardBody, CardTitle } from '@null/ui';
 import { trpc } from '@/lib/trpc';
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [formData, setFormData] = useState({ name: '', slug: '' });
   const [error, setError] = useState<string | null>(null);
+
+  // Check for DB error from redirect
+  useEffect(() => {
+    if (searchParams.get('error') === 'db') {
+      setError('Database connection issue. Please try again or contact support.');
+    }
+  }, [searchParams]);
 
   const createMutation = trpc.organization.create.useMutation({
     onSuccess: () => {
