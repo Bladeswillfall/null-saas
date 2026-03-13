@@ -9,7 +9,8 @@ const protectedRoutes = ['/dashboard', '/onboarding'];
 const authRoutes = ['/auth/login', '/auth/sign-up'];
 
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  // Create initial response - will be replaced in setAll
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient<Database>(
     clientEnv.NEXT_PUBLIC_SUPABASE_URL,
@@ -20,27 +21,43 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet: CookieToSet[]) {
-          cookiesToSet.forEach(({ name, value, options }) => {
+          // First, set cookies on the request
+          cookiesToSet.forEach(({ name, value }) => {
             request.cookies.set(name, value);
-            response.cookies.set(name, value, options);
+          });
+          // Create a NEW response with the updated request - this is critical!
+          supabaseResponse = NextResponse.next({ request });
+          // Then set cookies on the new response
+          cookiesToSet.forEach(({ name, value, options }) => {
+            supabaseResponse.cookies.set(name, value, options);
           });
         }
       }
     }
   );
 
+  // Do not run code between createServerClient and supabase.auth.getUser().
+  // A simple mistake could make it very hard to debug issues with users being randomly logged out.
   const { data: { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
 
   // Redirect authenticated users away from auth pages to dashboard
   if (user && authRoutes.some(route => pathname.startsWith(route))) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    const redirectUrl = new URL('/dashboard', request.url);
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    // Copy cookies to redirect response
+    supabaseResponse.cookies.getAll().forEach(cookie => {
+      redirectResponse.cookies.set(cookie.name, cookie.value);
+    });
+    return redirectResponse;
   }
 
   // Redirect unauthenticated users away from protected routes to login
   if (!user && protectedRoutes.some(route => pathname.startsWith(route))) {
-    return NextResponse.redirect(new URL('/auth/login', request.url));
+    const redirectUrl = new URL('/auth/login', request.url);
+    return NextResponse.redirect(redirectUrl);
   }
 
-  return response;
+  // IMPORTANT: Return supabaseResponse as-is to preserve cookies
+  return supabaseResponse;
 }
