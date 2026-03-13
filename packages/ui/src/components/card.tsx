@@ -9,8 +9,8 @@ export function Card({ children, className, ...props }: PropsWithChildren<HTMLAt
       style={{
         border: '1px solid var(--border)',
         borderRadius: 'var(--radius)',
-        background: 'rgba(19, 26, 46, 0.88)',
-        boxShadow: 'var(--shadow)'
+        background: 'var(--surface)',
+        boxShadow: 'var(--shadow-sm)'
       }}
     >
       {children}
@@ -28,7 +28,7 @@ export function CardBody({ children, className, ...props }: PropsWithChildren<HT
 
 export function CardTitle({ children, className, ...props }: PropsWithChildren<HTMLAttributes<HTMLHeadingElement>>) {
   return (
-    <h2 className={cn(className)} {...props} style={{ marginTop: 0, marginBottom: '0.5rem', fontSize: '1.15rem' }}>
+    <h2 className={cn(className)} {...props} style={{ marginTop: 0, marginBottom: '0.5rem', fontSize: '1.15rem', fontWeight: 600, color: 'var(--foreground)' }}>
       {children}
     </h2>
   );

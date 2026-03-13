@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { PayoutsList } from './components/payouts-list';
 
 export const metadata: Metadata = {
   title: 'Payouts - NULL SaaS',
@@ -10,11 +11,9 @@ export default function PayoutsPage() {
     <main className="stack">
       <div className="page-header">
         <h1>Payouts</h1>
-        <p className="muted">Track creator earnings, payout periods, and payment history</p>
+        <p>Create and manage payout periods for your creators</p>
       </div>
-      <div style={{ padding: '2rem', background: 'var(--surface)', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
-        <p className="muted">Payouts management page coming soon</p>
-      </div>
+      <PayoutsList />
     </main>
   );
 }

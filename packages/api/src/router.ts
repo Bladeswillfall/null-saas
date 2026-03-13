@@ -6,6 +6,7 @@ import { subsidiaryRouter } from './routers/subsidiary';
 import { ipRouter } from './routers/ip';
 import { creatorRouter } from './routers/creator';
 import { agreementRouter } from './routers/agreement';
+import { payoutRouter } from './routers/payout';
 
 export const appRouter = router({
   health: healthRouter,
@@ -14,7 +15,8 @@ export const appRouter = router({
   subsidiary: subsidiaryRouter,
   ip: ipRouter,
   creator: creatorRouter,
-  agreement: agreementRouter
+  agreement: agreementRouter,
+  payout: payoutRouter
 });
 
 export type AppRouter = typeof appRouter;
