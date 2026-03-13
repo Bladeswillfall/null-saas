@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
+import { TRPCError } from '@trpc/server';
 import { router, protectedProcedure } from '../trpc';
-import { organizations, organizationMembers } from '@null/db';
+import { organizations, organizationMembers, profiles } from '@null/db';
 
 export const organizationRouter = router({
   // List organizations the user is a member of
@@ -37,21 +38,52 @@ export const organizationRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const [newOrg] = await ctx.db
-        .insert(organizations)
-        .values({
-          name: input.name,
-          slug: input.slug
-        })
-        .returning();
+      const name = input.name.trim();
+      const slug = input.slug
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9-]+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
 
-      // Add creator as owner
-      await ctx.db.insert(organizationMembers).values({
-        organizationId: newOrg.id,
-        userId: ctx.user.id,
-        role: 'owner'
+      return await ctx.db.transaction(async (tx) => {
+        // Ensure profile exists for the user (handles case where trigger failed)
+        await tx
+          .insert(profiles)
+          .values({
+            id: ctx.user.id,
+            email: ctx.user.email ?? null
+          })
+          .onConflictDoNothing();
+
+        // Check if slug already exists
+        const existing = await tx
+          .select({ id: organizations.id })
+          .from(organizations)
+          .where(eq(organizations.slug, slug))
+          .limit(1);
+
+        if (existing.length > 0) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Organization slug already exists.'
+          });
+        }
+
+        // Create organization
+        const [newOrg] = await tx
+          .insert(organizations)
+          .values({ name, slug })
+          .returning();
+
+        // Add user as owner (all in transaction, so both succeed or both fail)
+        await tx.insert(organizationMembers).values({
+          organizationId: newOrg.id,
+          userId: ctx.user.id,
+          role: 'owner'
+        });
+
+        return newOrg;
       });
-
-      return newOrg;
     })
 });
