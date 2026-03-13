@@ -7,8 +7,8 @@ add constraint payout_periods_date_order check (period_start <= period_end),
 add constraint payout_periods_amount_positive check (total_amount is null or total_amount >= 0);
 
 -- Add unique constraint: only one draft per org at a time
-alter table public.payout_periods
-add constraint payout_periods_one_draft_per_org unique (organization_id) 
+create unique index idx_payout_periods_one_draft_per_org 
+on public.payout_periods(organization_id) 
 where status = 'draft';
 
 -- Add constraints to creator_agreements for percentage validation
@@ -55,15 +55,12 @@ where pp.status = 'draft'
 order by c.id, ip.id;
 
 -- Additional performance indexes for payout lookups
-create index idx_payout_periods_org_status on public.payout_periods(organization_id, status);
-create index idx_payout_periods_date_range on public.payout_periods(period_start, period_end);
-create index idx_creator_agreements_org_status on public.creator_agreements(organization_id, status);
-create index idx_creator_agreements_effective_dates on public.creator_agreements(effective_date, expires_date);
-create index idx_ip_contributors_ip_creator on public.ip_contributors(ip_id, creator_id);
-create index idx_payout_ledger_org_period on public.payout_ledger_entries(
-  (select organization_id from public.payout_periods where id = payout_ledger_entries.payout_period_id),
-  payout_period_id
-);
+create index if not exists idx_payout_periods_org_status on public.payout_periods(organization_id, status);
+create index if not exists idx_payout_periods_date_range on public.payout_periods(period_start, period_end);
+create index if not exists idx_creator_agreements_org_status on public.creator_agreements(organization_id, status);
+create index if not exists idx_creator_agreements_effective_dates on public.creator_agreements(effective_date, expires_date);
+create index if not exists idx_ip_contributors_ip_creator on public.ip_contributors(ip_id, creator_id);
+create index if not exists idx_payout_ledger_period on public.payout_ledger_entries(payout_period_id);
 
 -- Create function to validate payout period creation
 create or replace function public.validate_payout_period_creation(
