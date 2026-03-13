@@ -1,5 +1,5 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js';
-import { db } from '@null/db';
+import { getDb } from '@null/db';
 
 // Use generic type to accept any typed SupabaseClient
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -11,12 +11,13 @@ export interface CreateContextOptions {
 }
 
 export interface Context {
-  db: NonNullable<typeof db>;
+  db: ReturnType<typeof getDb>;
   supabase: AnySupabaseClient;
   user: User | null;
 }
 
 export function createContext(opts: CreateContextOptions): Context {
+  const db = getDb();
   if (!db) {
     throw new Error('Database connection not available. Check POSTGRES_URL environment variable.');
   }
