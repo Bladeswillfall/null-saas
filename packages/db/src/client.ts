@@ -2,44 +2,72 @@ import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres, { type Sql } from 'postgres';
 import * as schema from './schema';
 
-// Singleton instances - lazily initialized
-let queryClientInstance: Sql | null = null;
-let dbInstance: PostgresJsDatabase<typeof schema> | null = null;
+// In serverless, we need fresh connections per request due to cold starts
+// Use a cache key based on connection string to allow reuse within same process
+const clientCache = new Map<string, Sql>();
+const dbCache = new Map<string, PostgresJsDatabase<typeof schema>>();
 
 function getConnectionString(): string {
-  return process.env.POSTGRES_URL || process.env.DATABASE_URL || '';
+  // Try multiple env var names for compatibility
+  const connectionString = 
+    process.env.POSTGRES_URL || 
+    process.env.DATABASE_URL || 
+    process.env.POSTGRES_URL_NON_POOLING ||
+    '';
+  return connectionString;
 }
 
-// Lazy getter for postgres client
+// Get or create postgres client
 export function getQueryClient(): Sql | null {
   const connectionString = getConnectionString();
+  
+  if (!connectionString) {
+    console.error('[db] No connection string found. Checked: POSTGRES_URL, DATABASE_URL, POSTGRES_URL_NON_POOLING');
+    return null;
+  }
+  
+  // Use cached client if available for this connection string
+  const cached = clientCache.get(connectionString);
+  if (cached) {
+    return cached;
+  }
+  
+  // Create new client with serverless-optimized settings
+  const client = postgres(connectionString, {
+    max: 1, // Serverless: single connection per instance
+    idle_timeout: 20,
+    connect_timeout: 10,
+    prepare: false // Better for serverless - avoids prepared statement conflicts
+  });
+  
+  clientCache.set(connectionString, client);
+  return client;
+}
+
+// Get or create drizzle instance
+export function getDb(): PostgresJsDatabase<typeof schema> | null {
+  const connectionString = getConnectionString();
+  
   if (!connectionString) {
     return null;
   }
   
-  if (!queryClientInstance) {
-    queryClientInstance = postgres(connectionString, {
-      max: 10,
-      idle_timeout: 20,
-      connect_timeout: 10
-    });
+  // Use cached db if available
+  const cached = dbCache.get(connectionString);
+  if (cached) {
+    return cached;
   }
-  return queryClientInstance;
-}
-
-// Lazy getter for drizzle instance
-export function getDb(): PostgresJsDatabase<typeof schema> | null {
+  
   const client = getQueryClient();
   if (!client) {
     return null;
   }
   
-  if (!dbInstance) {
-    dbInstance = drizzle(client, { schema });
-  }
-  return dbInstance;
+  const db = drizzle(client, { schema });
+  dbCache.set(connectionString, db);
+  return db;
 }
 
-// For backward compatibility - use getters internally
+// For backward compatibility - these now call the getters
 export const queryClient = null as Sql | null; // Deprecated: use getQueryClient()
 export const db = null as PostgresJsDatabase<typeof schema> | null; // Deprecated: use getDb()
