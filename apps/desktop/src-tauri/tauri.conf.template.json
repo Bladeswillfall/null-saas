@@ -1,0 +1,32 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "NULL Desktop",
+  "version": "0.1.0",
+  "identifier": "com.null.desktop",
+  "build": {
+    "beforeDevCommand": "pnpm --filter @null/web dev",
+    "beforeBuildCommand": "pnpm --filter @null/web build",
+    "frontendDist": "../../web/.next"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "NULL Desktop",
+        "width": 1440,
+        "height": 900
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all"
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "SET_AT_RELEASE_TIME",
+      "endpoints": [
+        "https://github.com/Bladeswillfall/null-saas/releases/latest/download/latest.json"
+      ]
+    }
+  }
+}

@@ -1,0 +1,24 @@
+name: Bug report
+description: Report a defect in the web shell, packages, or Supabase setup
+title: "bug: "
+labels: [bug]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is broken?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should happen?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Which area is affected?
+      description: web shell, shared package, migration, edge function, CI, desktop plan
+    validations:
+      required: true
