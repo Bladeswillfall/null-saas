@@ -1,7 +1,5 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { Button } from '@null/ui';
-import { createClient } from '@/lib/supabase/server';
 
 const features = [
   {
@@ -34,14 +32,6 @@ const stats = [
 ];
 
 export default async function HomePage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  // Redirect authenticated users to dashboard
-  if (user) {
-    redirect('/dashboard');
-  }
-
   return (
     <main style={{ padding: 0 }}>
       {/* Navigation */}
