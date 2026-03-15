@@ -243,10 +243,12 @@ create table public.leaderboard_snapshots (
   snapshot_date date not null,
   time_window   public.time_window_enum not null,
   scope_type    public.scope_type_enum not null,
-  scope_value   text,
-  generated_at  timestamptz not null default now(),
-  unique (snapshot_date, time_window, scope_type, coalesce(scope_value, ''))
+  scope_value   text not null default '',
+  generated_at  timestamptz not null default now()
 );
+
+create unique index idx_leaderboard_snapshots_unique
+  on public.leaderboard_snapshots(snapshot_date, time_window, scope_type, scope_value);
 
 -- =============================================================================
 -- INDEXES
