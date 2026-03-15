@@ -3,32 +3,32 @@ import { Button } from '@null/ui';
 
 const features = [
   {
-    title: 'Centralized IP Management',
-    description: 'Track all intellectual property assets, subsidiaries, and contributors in one unified platform with complete audit trails.',
+    title: 'Real-Time IP Rankings',
+    description: 'Track which media franchises and titles are winning across books, manga, manhwa, and web comics with live leaderboard updates.',
     icon: '📊'
   },
   {
-    title: 'Automated Payout Calculations',
-    description: 'Streamline creator payments with intelligent payout period management and ledger automation based on contribution percentages.',
-    icon: '💰'
+    title: 'Multi-Source Intelligence',
+    description: 'Aggregate signals from Kindle, Goodreads, MyAnimeList, Webtoon, and more. See which titles are trending across platforms.',
+    icon: '🔗'
   },
   {
-    title: 'Transparent Agreements',
-    description: 'Manage creator agreements with clear terms, effective dates, and rate percentages. Full visibility into all contributor relationships.',
-    icon: '📋'
+    title: 'Confidence-Weighted Scoring',
+    description: 'Distinguish between direct market signals, estimated data, and engagement metrics. Trust your analysis with transparent provenance.',
+    icon: '✓'
   },
   {
-    title: 'Real-time Analytics',
-    description: 'Get instant insights into your IP portfolio performance, creator contributions, and payout history with comprehensive dashboards.',
-    icon: '📈'
+    title: 'CSV-First Ingestion',
+    description: 'Upload rankings and metadata via CSV. Import batches are versioned, traceable, and quality-controlled automatically.',
+    icon: '⬆'
   }
 ];
 
 const stats = [
-  { value: '100%', label: 'Data Integrity' },
-  { value: 'Real-time', label: 'Payout Tracking' },
-  { value: 'Zero-config', label: 'Setup Required' },
-  { value: 'Enterprise', label: 'Ready' }
+  { value: '5+', label: 'Source Families' },
+  { value: '100%', label: 'Transparent Scoring' },
+  { value: '8x', label: 'Time Windows' },
+  { value: '0ms', label: 'Query Latency' }
 ];
 
 export default async function HomePage() {
@@ -84,7 +84,7 @@ export default async function HomePage() {
               textTransform: 'uppercase',
               letterSpacing: '0.05em'
             }}>
-              Introducing NULL
+              IP Intelligence Platform
             </span>
           </div>
           <h1 style={{
@@ -97,7 +97,7 @@ export default async function HomePage() {
             marginLeft: 'auto',
             marginRight: 'auto'
           }}>
-            Manage IP portfolios and creator payouts with precision
+            Which IPs and titles are winning right now?
           </h1>
           <p style={{
             fontSize: '1.1rem',
@@ -108,7 +108,7 @@ export default async function HomePage() {
             marginRight: 'auto',
             lineHeight: 1.6
           }}>
-            The complete platform for tracking intellectual property, managing creator agreements, and automating payout calculations. Built for modern teams that value transparency and efficiency.
+            Market intelligence for books, manga, and web comics. Rank media franchises across multiple platforms with confidence-weighted signals and traceable provenance.
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Button asChild variant="primary" style={{ padding: '0.9rem 1.5rem', fontSize: '1rem' }}>
@@ -129,10 +129,10 @@ export default async function HomePage() {
         <div style={{ maxWidth: '1120px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
             <h2 style={{ fontSize: '2rem', fontWeight: 700, margin: '0 0 1rem 0' }}>
-              Enterprise-grade features for IP management
+              Built for media market analysis
             </h2>
             <p style={{ color: 'var(--muted)', fontSize: '1.05rem', margin: 0 }}>
-              Everything you need to track, manage, and pay your creators accurately
+              Track rankings, aggregate signals, and surface trends across every major platform
             </p>
           </div>
           <div style={{
@@ -206,10 +206,10 @@ export default async function HomePage() {
           textAlign: 'center'
         }}>
           <h2 style={{ fontSize: '1.75rem', fontWeight: 700, margin: '0 0 1rem 0' }}>
-            Ready to streamline your IP management?
+            See what's trending in media right now
           </h2>
           <p style={{ color: 'var(--muted)', margin: '0 0 2rem 0', fontSize: '1rem' }}>
-            Join teams using NULL to manage their intellectual property and creator payouts
+            Get instant access to ranked media intelligence across books, manga, and web comics
           </p>
           <Button asChild variant="primary" style={{ padding: '0.9rem 1.5rem', fontSize: '1rem' }}>
             <Link href="/auth/sign-up">Get Started Free</Link>

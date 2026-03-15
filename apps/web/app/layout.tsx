@@ -3,8 +3,8 @@ import type { Metadata } from 'next';
 import { TRPCProvider } from '@/lib/trpc/provider';
 
 export const metadata: Metadata = {
-  title: 'NULL SaaS Starter',
-  description: 'A clean monorepo starter for the NULL SaaS web app with a future Tauri shell.'
+  title: 'NULL — IP Intelligence Terminal',
+  description: 'Market intelligence for books, manga, and web comics. Rank media franchises across multiple platforms with confidence-weighted signals and traceable provenance.'
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
