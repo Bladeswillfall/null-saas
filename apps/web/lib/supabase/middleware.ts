@@ -7,6 +7,7 @@ type CookieToSet = { name: string; value: string; options: CookieOptions };
 
 const protectedRoutes = ['/dashboard', '/onboarding'];
 const authRoutes = ['/auth/login', '/auth/sign-up'];
+const authenticatedHome = '/dashboard';
 
 export async function updateSession(request: NextRequest) {
   // Create initial response - will be replaced in setAll
@@ -41,9 +42,9 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
 
-  // Redirect authenticated users away from auth pages to home
+  // Redirect authenticated users away from auth pages to dashboard
   if (user && authRoutes.some(route => pathname.startsWith(route))) {
-    const redirectUrl = new URL('/', request.url);
+    const redirectUrl = new URL(authenticatedHome, request.url);
     const redirectResponse = NextResponse.redirect(redirectUrl);
     // Copy cookies to redirect response
     supabaseResponse.cookies.getAll().forEach(cookie => {

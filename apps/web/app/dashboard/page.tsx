@@ -5,28 +5,41 @@ import { AnalyticsStateNotice, SectionCard, StatCard } from './_components/analy
 
 async function loadOverview() {
   const trpc = await createServerTRPCClient();
-  const organizations = await trpc.organization.list.query();
-  const currentOrganization = organizations[0];
 
-  if (!currentOrganization) {
+  try {
+    const organizations = await trpc.organization.list.query();
+    const currentOrganization = organizations[0];
+
+    if (!currentOrganization) {
+      return {
+        organizationId: null,
+        overview: null,
+        organizationError: 'Create your first organization to unlock analytics data and admin workflows.'
+      };
+    }
+
+    const overview = await trpc.leaderboard.overview.query({
+      organizationId: currentOrganization.id
+    });
+
+    return {
+      organizationId: currentOrganization.id,
+      overview,
+      organizationError: null
+    };
+  } catch (error) {
+    console.error('Failed to load dashboard overview', error);
+
     return {
       organizationId: null,
-      overview: null
+      overview: null,
+      organizationError: 'Dashboard data is not available yet. Check your database configuration and organization setup, then refresh.'
     };
   }
-
-  const overview = await trpc.leaderboard.overview.query({
-    organizationId: currentOrganization.id
-  });
-
-  return {
-    organizationId: currentOrganization.id,
-    overview
-  };
 }
 
 export default async function DashboardPage() {
-  const { organizationId, overview } = await loadOverview();
+  const { organizationId, overview, organizationError } = await loadOverview();
 
   return (
     <main className="stack">
@@ -34,6 +47,13 @@ export default async function DashboardPage() {
         <h1>Analytics Overview</h1>
         <p>Track the current state of your IP intelligence board, imports, and score coverage.</p>
       </div>
+
+      {organizationError ? (
+        <AnalyticsStateNotice
+          title="Dashboard setup still needed"
+          body={organizationError}
+        />
+      ) : null}
 
       {overview?.status === 'unavailable' ? (
         <AnalyticsStateNotice
