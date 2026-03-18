@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Card, CardBody, CardTitle, Button } from '@null/ui';
+import { Card, CardBody, Button } from '@null/ui';
 
 export const metadata = {
   title: 'Check Your Email - NULL',

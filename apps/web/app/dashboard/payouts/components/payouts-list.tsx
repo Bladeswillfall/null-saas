@@ -3,17 +3,7 @@
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useOrganization } from '@/lib/context/organization-context';
-import { format } from 'date-fns';
-
-interface PayoutPeriod {
-  id: string;
-  periodStart: string;
-  periodEnd: string;
-  status: 'draft' | 'published' | 'finalized';
-  totalAmount: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { formatDateOnly } from '@/lib/analytics';
 
 export function PayoutsList() {
   const { organization } = useOrganization();
@@ -124,7 +114,7 @@ export function PayoutsList() {
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        {list?.map((period: PayoutPeriod) => (
+        {list?.map((period) => (
           <div
             key={period.id}
             style={{
@@ -140,7 +130,7 @@ export function PayoutsList() {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
                 <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600 }}>
-                  {format(new Date(period.periodStart), 'MMM dd, yyyy')} - {format(new Date(period.periodEnd), 'MMM dd, yyyy')}
+                  {formatDateOnly(period.periodStart)} - {formatDateOnly(period.periodEnd)}
                 </h3>
                 <span style={{
                   padding: '0.15rem 0.5rem',

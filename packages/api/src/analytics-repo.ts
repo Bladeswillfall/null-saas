@@ -66,6 +66,7 @@ import {
   scoreSalesObservations,
   scoreComponentTypes,
   scoreComponentWeights,
+  sourceFreshnessHours,
   unavailableResult,
   validateCsvHeaders,
   validateCsvRow,
@@ -2051,8 +2052,8 @@ export async function listLeaderboardRows(
       workToTags.set(row.workId, tags);
     });
 
-    let rows: LeaderboardRow[] = selectedScores
-      .map((score) => {
+    let rows = selectedScores
+      .map<LeaderboardRow | null>((score) => {
         const work = workById.get(score.workId);
         if (!work) {
           return null;
@@ -2221,7 +2222,7 @@ export async function listIpLeaderboardRows(
     });
 
     let rows = scoreRows
-      .map((row) => {
+      .map<IpLeaderboardRow | null>((row) => {
         const ip = ipRows.find((candidate) => candidate.id === row.franchiseId);
         if (!ip) {
           return null;

@@ -2,9 +2,17 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "plugins": [{ "name": "next" }],
-    "baseUrl": ".",
+    "baseUrl": "../..",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["apps/web/*"],
+      "@null/api": ["packages/api/src/index.ts"],
+      "@null/api/*": ["packages/api/src/*"],
+      "@null/db": ["packages/db/src/index.ts"],
+      "@null/db/*": ["packages/db/src/*"],
+      "@null/domain": ["packages/domain/src/index.ts"],
+      "@null/domain/*": ["packages/domain/src/*"],
+      "@null/ui": ["packages/ui/src/index.ts"],
+      "@null/ui/*": ["packages/ui/src/*"]
     }
   },
   "include": [
