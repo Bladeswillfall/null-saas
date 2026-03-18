@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
-import { format } from 'date-fns';
+import { formatDateOnly } from '@/lib/analytics';
 
 interface LedgerEntry {
   id: string;
@@ -33,10 +33,6 @@ export function PayoutDetailContent() {
   });
 
   const removeEntryMutation = trpc.payout.removeLedgerEntry.useMutation({
-    onSuccess: () => utils.payout.getPeriod.invalidate({ id: payoutId })
-  });
-
-  const updateEntryMutation = trpc.payout.updateLedgerEntry.useMutation({
     onSuccess: () => utils.payout.getPeriod.invalidate({ id: payoutId })
   });
 
@@ -74,7 +70,7 @@ export function PayoutDetailContent() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
           <div>
             <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
-              {format(new Date(period.periodStart), 'MMM dd, yyyy')} - {format(new Date(period.periodEnd), 'MMM dd, yyyy')}
+              {formatDateOnly(period.periodStart)} - {formatDateOnly(period.periodEnd)}
             </h2>
             <p style={{ margin: '0.5rem 0 0 0', color: 'var(--muted)', fontSize: '0.85rem' }}>
               Status: <strong>{period.status}</strong>
