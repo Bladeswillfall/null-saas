@@ -5,12 +5,17 @@ import { OrganizationProvider, Organization } from '@/lib/context/organization-c
 
 interface DashboardProvidersProps {
   children: ReactNode;
-  organization: Organization;
+  organization: Organization | null;
+  organizationError?: string | null;
 }
 
-export function DashboardProviders({ children, organization }: DashboardProvidersProps) {
+export function DashboardProviders({
+  children,
+  organization,
+  organizationError = null
+}: DashboardProvidersProps) {
   return (
-    <OrganizationProvider organization={organization} loading={false} error={null}>
+    <OrganizationProvider organization={organization} loading={false} error={organizationError}>
       {children}
     </OrganizationProvider>
   );

@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { Button, Input, Label } from '@null/ui';
 
+const dashboardHref = '/dashboard';
+
 export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,7 +27,7 @@ export function LoginForm() {
         password
       });
       if (error) throw error;
-      router.push('/');
+      router.push(dashboardHref);
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -43,7 +45,7 @@ export function LoginForm() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=/`
+          redirectTo: `${window.location.origin}/auth/callback?next=${dashboardHref}`
         }
       });
       if (error) throw error;

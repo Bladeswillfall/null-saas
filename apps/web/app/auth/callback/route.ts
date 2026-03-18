@@ -1,14 +1,16 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
+const defaultNextPath = '/dashboard';
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  let next = searchParams.get('next') ?? '/';
+  let next = searchParams.get('next') ?? defaultNextPath;
 
   // Validate next parameter to prevent open redirects
   if (!next.startsWith('/')) {
-    next = '/';
+    next = defaultNextPath;
   }
 
   if (code) {

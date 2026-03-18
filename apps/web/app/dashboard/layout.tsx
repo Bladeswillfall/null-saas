@@ -6,6 +6,12 @@ import { Sidebar } from './sidebar';
 import { Breadcrumbs } from './breadcrumbs';
 import { DashboardProviders } from './providers';
 
+interface OrganizationSummary {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 export default async function DashboardLayout({
   children,
 }: {
@@ -22,29 +28,24 @@ export default async function DashboardLayout({
     redirect('/auth/login');
   }
 
-  // Now fetch organizations - any error here is a DB/config issue, not auth
+  // Try to fetch organizations, but keep the dashboard shell available even when
+  // org data has not been set up yet or the backing DB is temporarily unavailable.
   const trpc = await createServerTRPCClient();
-  let organizations: Array<{ id: string; name: string; slug: string }> = [];
+  let organizations: OrganizationSummary[] = [];
+  let organizationError: string | null = null;
 
   try {
     organizations = await trpc.organization.list.query();
   } catch (error) {
     console.error('Failed to load organizations for dashboard', error);
-    throw new Error(
-      'Dashboard failed to load organizations. Check DB env and onboarding inserts.'
-    );
+    organizationError =
+      'We could not load your organization yet. You can still browse the dashboard shell while data setup is completed.';
   }
 
-  // If user has no organizations, redirect to onboarding
-  if (organizations.length === 0) {
-    redirect('/onboarding');
-  }
-
-  // Use first organization as default
-  const currentOrg = organizations[0];
+  const currentOrg = organizations[0] ?? null;
 
   return (
-    <DashboardProviders organization={currentOrg}>
+    <DashboardProviders organization={currentOrg} organizationError={organizationError}>
       <div className="dashboard-container">
         <Sidebar />
         <main className="dashboard-main">
