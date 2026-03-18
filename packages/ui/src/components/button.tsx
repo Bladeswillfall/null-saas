@@ -21,8 +21,9 @@ export function Button({ children, variant = 'primary', asChild, className, ...p
   const mergedClassName = cn(buttonClass(variant), className);
 
   if (asChild && isValidElement(children)) {
-    const child = children as ReactElement<{ className?: string }>;
+    const child = children as ReactElement<Record<string, unknown> & { className?: string }>;
     return cloneElement(child, {
+      ...props,
       className: cn(child.props.className, mergedClassName)
     });
   }

@@ -6,7 +6,6 @@ import {
   ipScores,
   leaderboardSnapshots,
   normalizedObservations,
-  organizationMembers,
   qualityFlags,
   rawObservations,
   scoreComponents,
@@ -74,9 +73,9 @@ import {
   slugify
 } from '@null/domain';
 import type { TRPCContext } from './context';
+import { requireOrganizationAdmin, requireOrganizationMember } from './auth';
 
 type AnalyticsContext = Pick<TRPCContext, 'db' | 'user'>;
-type OrganizationRole = 'owner' | 'admin' | 'member';
 type RawMetadata = Record<string, unknown>;
 
 export type UploadImportResult = {
@@ -137,39 +136,6 @@ function requireUser(ctx: AnalyticsContext): string {
     });
   }
   return ctx.user.id;
-}
-
-async function getOrganizationRole(ctx: AnalyticsContext, organizationId: string): Promise<OrganizationRole | null> {
-  const userId = requireUser(ctx);
-  const [membership] = await ctx.db
-    .select({ role: organizationMembers.role })
-    .from(organizationMembers)
-    .where(and(eq(organizationMembers.organizationId, organizationId), eq(organizationMembers.userId, userId)))
-    .limit(1);
-
-  return membership?.role ?? null;
-}
-
-async function requireOrganizationMember(ctx: AnalyticsContext, organizationId: string): Promise<OrganizationRole> {
-  const role = await getOrganizationRole(ctx, organizationId);
-  if (!role) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'You are not a member of this organization.'
-    });
-  }
-  return role;
-}
-
-async function requireOrganizationAdmin(ctx: AnalyticsContext, organizationId: string): Promise<OrganizationRole> {
-  const role = await requireOrganizationMember(ctx, organizationId);
-  if (role === 'member') {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'You do not have permission to modify analytics data.'
-    });
-  }
-  return role;
 }
 
 function asTimestamp(value: Date | string | null | undefined): number {

@@ -44,6 +44,10 @@ export default async function DashboardLayout({
 
   const currentOrg = organizations[0] ?? null;
 
+  if (!currentOrg && !organizationError) {
+    redirect('/onboarding');
+  }
+
   return (
     <DashboardProviders organization={currentOrg} organizationError={organizationError}>
       <div className="dashboard-container">

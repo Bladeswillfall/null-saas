@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { router, protectedProcedure } from '../trpc';
 import { organizations, organizationMembers, profiles } from '@null/db';
+import { requireOrganizationMember } from '../auth';
 
 export const organizationRouter = router({
   // List organizations the user is a member of
@@ -25,8 +26,13 @@ export const organizationRouter = router({
   // Get a single organization by slug
   getBySlug: protectedProcedure.input(z.object({ slug: z.string() })).query(async ({ ctx, input }) => {
     const [org] = await ctx.db.select().from(organizations).where(eq(organizations.slug, input.slug)).limit(1);
+    if (!org) {
+      return null;
+    }
 
-    return org ?? null;
+    await requireOrganizationMember(ctx, org.id);
+
+    return org;
   }),
 
   // Create a new organization

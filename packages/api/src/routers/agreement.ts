@@ -2,11 +2,19 @@ import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { router, protectedProcedure } from '../trpc';
 import { creatorAgreements, creators } from '@null/db';
+import {
+  assertSameOrganization,
+  requireAgreementOrganizationId,
+  requireCreatorOrganizationId,
+  requireOrganizationAdmin,
+  requireOrganizationMember
+} from '../auth';
 
 export const agreementRouter = router({
   list: protectedProcedure
     .input(z.object({ organizationId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      await requireOrganizationMember(ctx, input.organizationId);
       return await ctx.db
         .select({
           id: creatorAgreements.id,
@@ -30,6 +38,8 @@ export const agreementRouter = router({
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      const organizationId = await requireAgreementOrganizationId(ctx, input.id);
+      await requireOrganizationMember(ctx, organizationId);
       const [agreement] = await ctx.db
         .select()
         .from(creatorAgreements)
@@ -52,6 +62,9 @@ export const agreementRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      await requireOrganizationAdmin(ctx, input.organizationId);
+      const creatorOrganizationId = await requireCreatorOrganizationId(ctx, input.creatorId);
+      assertSameOrganization(input.organizationId, creatorOrganizationId, 'Creator');
       const [agreement] = await ctx.db
         .insert(creatorAgreements)
         .values({
@@ -83,6 +96,8 @@ export const agreementRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
+      const organizationId = await requireAgreementOrganizationId(ctx, id);
+      await requireOrganizationAdmin(ctx, organizationId);
       const [updated] = await ctx.db
         .update(creatorAgreements)
         .set({ ...data, updatedAt: new Date() })
@@ -95,6 +110,8 @@ export const agreementRouter = router({
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const organizationId = await requireAgreementOrganizationId(ctx, input.id);
+      await requireOrganizationAdmin(ctx, organizationId);
       await ctx.db.delete(creatorAgreements).where(eq(creatorAgreements.id, input.id));
       return { success: true };
     })
