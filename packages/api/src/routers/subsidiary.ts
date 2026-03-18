@@ -1,12 +1,18 @@
 import { z } from 'zod';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { router, protectedProcedure } from '../trpc';
-import { subsidiaries, organizations } from '@null/db';
+import { subsidiaries } from '@null/db';
+import {
+  requireOrganizationAdmin,
+  requireOrganizationMember,
+  requireSubsidiaryOrganizationId
+} from '../auth';
 
 export const subsidiaryRouter = router({
   list: protectedProcedure
     .input(z.object({ organizationId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      await requireOrganizationMember(ctx, input.organizationId);
       return await ctx.db
         .select()
         .from(subsidiaries)
@@ -16,6 +22,8 @@ export const subsidiaryRouter = router({
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      const organizationId = await requireSubsidiaryOrganizationId(ctx, input.id);
+      await requireOrganizationMember(ctx, organizationId);
       const [subsidiary] = await ctx.db
         .select()
         .from(subsidiaries)
@@ -33,6 +41,7 @@ export const subsidiaryRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      await requireOrganizationAdmin(ctx, input.organizationId);
       const [subsidiary] = await ctx.db
         .insert(subsidiaries)
         .values({
@@ -55,6 +64,8 @@ export const subsidiaryRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
+      const organizationId = await requireSubsidiaryOrganizationId(ctx, id);
+      await requireOrganizationAdmin(ctx, organizationId);
       const [updated] = await ctx.db
         .update(subsidiaries)
         .set({ ...data, updatedAt: new Date() })
@@ -67,6 +78,8 @@ export const subsidiaryRouter = router({
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const organizationId = await requireSubsidiaryOrganizationId(ctx, input.id);
+      await requireOrganizationAdmin(ctx, organizationId);
       await ctx.db.delete(subsidiaries).where(eq(subsidiaries.id, input.id));
       return { success: true };
     })

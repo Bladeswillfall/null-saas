@@ -2,6 +2,10 @@ import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres, { type Sql } from 'postgres';
 import * as schema from './schema';
 
+declare const process: {
+  env: Record<string, string | undefined>;
+};
+
 // In serverless, we need fresh connections per request due to cold starts
 // Use a cache key based on connection string to allow reuse within same process
 const clientCache = new Map<string, Sql>();

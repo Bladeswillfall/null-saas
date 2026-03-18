@@ -19,18 +19,14 @@ export interface Context {
 
 export function createContext(opts: CreateContextOptions): Context {
   const db = getDb();
-  
+
   if (!db) {
-    // Log available env vars (keys only, not values) for debugging
-    const envKeys = Object.keys(process.env).filter(k => 
-      k.includes('POSTGRES') || k.includes('DATABASE') || k.includes('SUPABASE')
-    );
-    console.error('[api/context] Database connection failed. Available env keys:', envKeys.join(', '));
+    console.error('[api/context] Database connection failed. POSTGRES_URL or DATABASE_URL is not available to the API context.');
     throw new Error(
       'Database connection not available. Ensure POSTGRES_URL is set and accessible to the API package.'
     );
   }
-  
+
   return {
     db,
     supabase: opts.supabase,

@@ -1,13 +1,23 @@
 import { z } from 'zod';
-import { eq, and, gt, lt, desc } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { router, protectedProcedure } from '../trpc';
 import { payoutPeriods, payoutLedgerEntries, creators, ips } from '@null/db';
+import {
+  assertSameOrganization,
+  requireCreatorOrganizationId,
+  requireIpOrganizationId,
+  requireLedgerEntryOrganizationId,
+  requireOrganizationAdmin,
+  requireOrganizationMember,
+  requirePayoutPeriodOrganizationId
+} from '../auth';
 
 export const payoutRouter = router({
   // List all payout periods for an organization
   listPeriods: protectedProcedure
     .input(z.object({ organizationId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      await requireOrganizationMember(ctx, input.organizationId);
       return await ctx.db
         .select()
         .from(payoutPeriods)
@@ -19,6 +29,8 @@ export const payoutRouter = router({
   getPeriod: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      const organizationId = await requirePayoutPeriodOrganizationId(ctx, input.id);
+      await requireOrganizationMember(ctx, organizationId);
       const [period] = await ctx.db
         .select()
         .from(payoutPeriods)
@@ -56,6 +68,7 @@ export const payoutRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      await requireOrganizationAdmin(ctx, input.organizationId);
       const [newPeriod] = await ctx.db
         .insert(payoutPeriods)
         .values({
@@ -78,6 +91,8 @@ export const payoutRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const organizationId = await requirePayoutPeriodOrganizationId(ctx, input.id);
+      await requireOrganizationAdmin(ctx, organizationId);
       const [updated] = await ctx.db
         .update(payoutPeriods)
         .set({ status: input.status, updatedAt: new Date() })
@@ -98,6 +113,14 @@ export const payoutRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const organizationId = await requirePayoutPeriodOrganizationId(ctx, input.payoutPeriodId);
+      await requireOrganizationAdmin(ctx, organizationId);
+      const creatorOrganizationId = await requireCreatorOrganizationId(ctx, input.creatorId);
+      assertSameOrganization(organizationId, creatorOrganizationId, 'Creator');
+      if (input.ipId) {
+        const ipOrganizationId = await requireIpOrganizationId(ctx, input.ipId);
+        assertSameOrganization(organizationId, ipOrganizationId, 'IP');
+      }
       const [entry] = await ctx.db
         .insert(payoutLedgerEntries)
         .values({
@@ -115,6 +138,8 @@ export const payoutRouter = router({
   removeLedgerEntry: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const organizationId = await requireLedgerEntryOrganizationId(ctx, input.id);
+      await requireOrganizationAdmin(ctx, organizationId);
       await ctx.db.delete(payoutLedgerEntries).where(eq(payoutLedgerEntries.id, input.id));
       return { success: true };
     }),
@@ -128,6 +153,8 @@ export const payoutRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const organizationId = await requireLedgerEntryOrganizationId(ctx, input.id);
+      await requireOrganizationAdmin(ctx, organizationId);
       const [updated] = await ctx.db
         .update(payoutLedgerEntries)
         .set({ amount: input.amount })
@@ -141,6 +168,8 @@ export const payoutRouter = router({
   deletePeriod: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const organizationId = await requirePayoutPeriodOrganizationId(ctx, input.id);
+      await requireOrganizationAdmin(ctx, organizationId);
       // First delete all ledger entries
       await ctx.db.delete(payoutLedgerEntries).where(eq(payoutLedgerEntries.payoutPeriodId, input.id));
 

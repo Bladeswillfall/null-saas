@@ -1,12 +1,20 @@
 import { z } from 'zod';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { router, protectedProcedure } from '../trpc';
 import { ips } from '@null/db';
+import {
+  assertSameOrganization,
+  requireIpOrganizationId,
+  requireOrganizationAdmin,
+  requireOrganizationMember,
+  requireSubsidiaryOrganizationId
+} from '../auth';
 
 export const ipRouter = router({
   list: protectedProcedure
     .input(z.object({ organizationId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      await requireOrganizationMember(ctx, input.organizationId);
       return await ctx.db
         .select()
         .from(ips)
@@ -16,6 +24,8 @@ export const ipRouter = router({
   listBySubsidiary: protectedProcedure
     .input(z.object({ subsidiaryId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      const organizationId = await requireSubsidiaryOrganizationId(ctx, input.subsidiaryId);
+      await requireOrganizationMember(ctx, organizationId);
       return await ctx.db
         .select()
         .from(ips)
@@ -25,6 +35,8 @@ export const ipRouter = router({
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      const organizationId = await requireIpOrganizationId(ctx, input.id);
+      await requireOrganizationMember(ctx, organizationId);
       const [ip] = await ctx.db
         .select()
         .from(ips)
@@ -44,6 +56,9 @@ export const ipRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      await requireOrganizationAdmin(ctx, input.organizationId);
+      const subsidiaryOrganizationId = await requireSubsidiaryOrganizationId(ctx, input.subsidiaryId);
+      assertSameOrganization(input.organizationId, subsidiaryOrganizationId, 'Subsidiary');
       const [ip] = await ctx.db
         .insert(ips)
         .values({
@@ -69,6 +84,8 @@ export const ipRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
+      const organizationId = await requireIpOrganizationId(ctx, id);
+      await requireOrganizationAdmin(ctx, organizationId);
       const [updated] = await ctx.db
         .update(ips)
         .set({ ...data, updatedAt: new Date() })
@@ -81,6 +98,8 @@ export const ipRouter = router({
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const organizationId = await requireIpOrganizationId(ctx, input.id);
+      await requireOrganizationAdmin(ctx, organizationId);
       await ctx.db.delete(ips).where(eq(ips.id, input.id));
       return { success: true };
     })
