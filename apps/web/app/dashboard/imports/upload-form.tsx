@@ -7,10 +7,12 @@ import { ImportResultCard, type UploadResult } from './import-result-card';
 
 export function UploadForm({
   organizationId,
-  providers
+  providers,
+  loadError
 }: {
   organizationId: string | null;
   providers: Array<{ id: string; slug: string; name: string }>;
+  loadError?: string | null;
 }) {
   const router = useRouter();
   const [providerSlug, setProviderSlug] = useState('');
@@ -20,8 +22,14 @@ export function UploadForm({
   const [isUploading, setIsUploading] = useState(false);
 
   const validationMessage = useMemo(() => {
+    if (loadError) {
+      return loadError;
+    }
     if (!organizationId) {
       return 'No organization is available for uploads yet.';
+    }
+    if (providers.length === 0) {
+      return 'No source providers are available for this organization yet.';
     }
     if (!providerSlug) {
       return 'Select a provider.';
@@ -30,7 +38,7 @@ export function UploadForm({
       return 'Choose a CSV file.';
     }
     return null;
-  }, [file, organizationId, providerSlug]);
+  }, [file, loadError, organizationId, providerSlug, providers.length]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -91,7 +99,7 @@ export function UploadForm({
               className="null-ui-input"
               value={providerSlug}
               onChange={(event) => setProviderSlug(event.target.value)}
-              disabled={isUploading || providers.length === 0}
+              disabled={isUploading || providers.length === 0 || Boolean(loadError)}
             >
               <option value="">Select provider</option>
               {providers.map((provider) => (
@@ -109,7 +117,7 @@ export function UploadForm({
               type="file"
               accept=".csv,.xlsx,text/csv"
               onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-              disabled={isUploading}
+              disabled={isUploading || Boolean(loadError)}
             />
           </div>
         </div>
