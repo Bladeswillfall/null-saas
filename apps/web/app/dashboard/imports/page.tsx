@@ -1,4 +1,5 @@
 import { createServerTRPCClient } from '@/lib/trpc/server';
+import { AnalyticsStateNotice } from '../_components/analytics-ui';
 import { UploadForm } from './upload-form';
 import { ImportBatchesTable } from './import-batches-table';
 
@@ -19,12 +20,15 @@ export default async function ImportsPage() {
     completedAt: Date | string | null;
     createdAt: Date | string;
   }> = [];
+  let loadError: string | null = null;
 
   try {
     const organizations = await trpc.organization.list.query();
     organization = organizations[0] ?? null;
 
-    if (organization) {
+    if (!organization) {
+      loadError = 'Create or join an organization before managing imports.';
+    } else {
       const [providerResult, batchResult] = await Promise.all([
         trpc.sourceProvider.list.query({ organizationId: organization.id }),
         trpc.importBatch.list.query({ organizationId: organization.id })
@@ -36,9 +40,16 @@ export default async function ImportsPage() {
       batches = batchResult.status === 'ready'
         ? batchResult.data.slice(0, 20)
         : [];
+
+      if (providerResult.status !== 'ready') {
+        loadError = providerResult.reason;
+      } else if (batchResult.status !== 'ready') {
+        loadError = batchResult.reason;
+      }
     }
   } catch (error) {
     console.error('Failed to load imports dashboard', error);
+    loadError = 'We could not load your organization, providers, or import history right now. Please refresh and try again.';
   }
 
   return (
@@ -47,6 +58,13 @@ export default async function ImportsPage() {
         <h1>Imports</h1>
         <p>Upload provider CSV files, stage them into Supabase, and review the most recent import batches.</p>
       </div>
+
+      {loadError ? (
+        <AnalyticsStateNotice
+          title="Imports data unavailable"
+          body={loadError}
+        />
+      ) : null}
 
       <section className="analytics-grid-2">
         <div className="analytics-panel">
@@ -69,7 +87,7 @@ export default async function ImportsPage() {
         </div>
       </section>
 
-      <UploadForm organizationId={organization?.id ?? null} providers={providers} />
+      <UploadForm organizationId={organization?.id ?? null} providers={providers} loadError={loadError} />
       <ImportBatchesTable batches={batches} />
     </main>
   );

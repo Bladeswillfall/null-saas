@@ -1,26 +1,76 @@
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
+import { getQueryClient, organizations, organizationMembers, profiles } from '@null/db';
 import { router, protectedProcedure } from '../trpc';
-import { organizations, organizationMembers, profiles } from '@null/db';
 import { requireOrganizationMember } from '../auth';
+
+function logOrganizationListError(error: unknown, userId: string) {
+  const details =
+    error && typeof error === 'object'
+      ? {
+          message: 'message' in error ? error.message : undefined,
+          code: 'code' in error ? error.code : undefined,
+          detail: 'detail' in error ? error.detail : undefined,
+          hint: 'hint' in error ? error.hint : undefined,
+          severity: 'severity' in error ? error.severity : undefined
+        }
+      : undefined;
+
+  console.error('[organization.list] Failed to load organizations', {
+    userId,
+    error,
+    ...details
+  });
+}
 
 export const organizationRouter = router({
   // List organizations the user is a member of
   list: protectedProcedure.query(async ({ ctx }) => {
-    const memberships = await ctx.db
-      .select({
-        id: organizations.id,
-        name: organizations.name,
-        slug: organizations.slug,
-        role: organizationMembers.role,
-        createdAt: organizations.createdAt
-      })
-      .from(organizationMembers)
-      .innerJoin(organizations, eq(organizationMembers.organizationId, organizations.id))
-      .where(eq(organizationMembers.userId, ctx.user.id));
+    const queryClient = getQueryClient();
 
-    return memberships;
+    if (!queryClient) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Database query client is not available.'
+      });
+    }
+
+    try {
+      const memberships = await queryClient<{
+        id: string;
+        name: string;
+        slug: string;
+        role: string;
+        created_at: Date | string;
+      }[]>`
+        select
+          o.id,
+          o.name,
+          o.slug,
+          om.role,
+          o.created_at
+        from public.organization_members om
+        inner join public.organizations o
+          on om.organization_id = o.id
+        where om.user_id = ${ctx.user.id}
+        order by o.created_at asc
+      `;
+
+      return memberships.map((membership) => ({
+        id: membership.id,
+        name: membership.name,
+        slug: membership.slug,
+        role: membership.role,
+        createdAt: membership.created_at
+      }));
+    } catch (error) {
+      logOrganizationListError(error, ctx.user.id);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to load organizations.'
+      });
+    }
   }),
 
   // Get a single organization by slug
