@@ -15,6 +15,7 @@ import { importBatchRouter } from './routers/import-batch';
 import { qualityRouter } from './routers/quality';
 import { leaderboardRouter } from './routers/leaderboard';
 import { freshnessRouter } from './routers/freshness';
+import { workDashboardRouter } from './routers/work-dashboard';
 
 export const appRouter = router({
   health: healthRouter,
@@ -32,7 +33,8 @@ export const appRouter = router({
   importBatch: importBatchRouter,
   quality: qualityRouter,
   leaderboard: leaderboardRouter,
-  freshness: freshnessRouter
+  freshness: freshnessRouter,
+  workDashboard: workDashboardRouter
 });
 
 export type AppRouter = typeof appRouter;

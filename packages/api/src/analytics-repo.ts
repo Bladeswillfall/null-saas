@@ -74,6 +74,7 @@ import {
 } from '@null/domain';
 import type { TRPCContext } from './context';
 import { requireOrganizationAdmin, requireOrganizationMember } from './auth';
+import { ingestSourceRecordsForBatch, matchSourceRecordsForBatch } from './entity-resolution-repo';
 
 type AnalyticsContext = Pick<TRPCContext, 'db' | 'user'>;
 type RawMetadata = Record<string, unknown>;
@@ -1239,7 +1240,7 @@ export async function uploadCsvImport(
             sourceProviderId: provider.id,
             rawWorkTitle: row.values.title.trim(),
             rawIpName: row.values.ip_name.trim(),
-            rawAuthorOrCreator: null,
+            rawAuthorOrCreator: row.values.author?.trim() || row.values.creator?.trim() || null,
             rawCategory: row.values.media_type.trim(),
             rawRegion: row.values.region.trim(),
             rawLanguage: row.values.language.trim(),
@@ -1256,6 +1257,21 @@ export async function uploadCsvImport(
           };
         })
       );
+      await ingestSourceRecordsForBatch(ctx, batch.id, validRows.map((row) => ({
+        ...row.values,
+        title: row.values.title,
+        author: row.values.author ?? row.values.creator ?? null,
+        creator: row.values.creator ?? row.values.author ?? null,
+        publisher: row.values.publisher ?? null,
+        asin: row.values.asin ?? null,
+        isbn_10: row.values.isbn_10 ?? row.values.isbn10 ?? null,
+        isbn_13: row.values.isbn_13 ?? row.values.isbn13 ?? null,
+        rating_value: row.values.rating_value ?? row.values.rating_avg_text ?? null,
+        review_count: row.values.review_count ?? row.values.ratings_count_text ?? null,
+        rank_value: row.values.rank_value ?? row.values.bestseller_rank_raw ?? null,
+        observed_at: row.values.observed_at
+      })));
+      await matchSourceRecordsForBatch(ctx, { batchId: batch.id, selectedBy: userId });
     }
 
     const status = validRows.length === 0 ? 'failed' : errors.length > 0 ? 'partial' : 'complete';
