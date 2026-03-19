@@ -10,7 +10,7 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
-    "test": "node --experimental-strip-types --test packages/domain/src/analytics.test.ts",
+    "test": "node --experimental-strip-types --test packages/domain/src/analytics.test.ts src/entity-resolution.test.ts packages/domain/src/entity-resolution.test.ts",
     "check": "pnpm lint && pnpm typecheck && pnpm build",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",

@@ -9,7 +9,7 @@
     "build": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --experimental-strip-types --test src/analytics.test.ts"
+    "test": "node --experimental-strip-types --test src/analytics.test.ts src/entity-resolution.test.ts"
   },
   "devDependencies": {
     "typescript": "^5.8.2"

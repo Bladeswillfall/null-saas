@@ -40,3 +40,5 @@ export function listStarterFeatures(): StarterFeature[] {
     }
   ];
 }
+
+export * from './entity-resolution';

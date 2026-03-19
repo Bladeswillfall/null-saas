@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, pgEnum, primaryKey, numeric, date, boolean, integer, bigint, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, pgEnum, primaryKey, numeric, date, boolean, integer, bigint, jsonb, uniqueIndex, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Enums
@@ -441,6 +441,127 @@ export const ipScores = pgTable('ip_scores', {
 });
 
 // ── leaderboard_snapshots ─────────────────────────────────────────────────────
+
+export const importFileRows = pgTable('import_file_rows', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  importBatchId: uuid('import_batch_id').notNull().references(() => importBatches.id, { onDelete: 'cascade' }),
+  rowNumber: integer('row_number').notNull(),
+  rowPayload: jsonb('row_payload').notNull().default({}),
+  rowHash: text('row_hash'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  importBatchRowUnique: uniqueIndex('import_file_rows_batch_row_unique').on(table.importBatchId, table.rowNumber)
+}));
+
+export const sourceRecords = pgTable('source_records', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organizationId: uuid('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  sourceProviderId: uuid('source_provider_id').notNull().references(() => sourceProviders.id, { onDelete: 'restrict' }),
+  importBatchId: uuid('import_batch_id').references(() => importBatches.id, { onDelete: 'cascade' }),
+  importFileRowId: uuid('import_file_row_id').references(() => importFileRows.id, { onDelete: 'set null' }),
+  externalId: text('external_id'),
+  externalUrl: text('external_url'),
+  rawTitle: text('raw_title').notNull(),
+  rawCreator: text('raw_creator'),
+  rawPublisher: text('raw_publisher'),
+  rawSeries: text('raw_series'),
+  rawLanguage: text('raw_language'),
+  rawRegion: text('raw_region'),
+  rawIsbn10: text('raw_isbn_10'),
+  rawIsbn13: text('raw_isbn_13'),
+  rawAsin: text('raw_asin'),
+  rawPublicationDate: text('raw_publication_date'),
+  rawFormat: text('raw_format'),
+  rawPayload: jsonb('raw_payload').notNull().default({}),
+  normalizedTitle: text('normalized_title'),
+  normalizedCreator: text('normalized_creator'),
+  normalizedPublisher: text('normalized_publisher'),
+  normalizedSeries: text('normalized_series'),
+  parsedPublicationDate: date('parsed_publication_date'),
+  parsedRatingValue: numeric('parsed_rating_value', { precision: 6, scale: 3 }),
+  parsedReviewCount: integer('parsed_review_count'),
+  parsedRankValue: integer('parsed_rank_value'),
+  parsedSalesValue: numeric('parsed_sales_value', { precision: 15, scale: 2 }),
+  parsedCurrency: text('parsed_currency'),
+  observedAt: timestamp('observed_at', { withTimezone: true }),
+  recordFingerprint: text('record_fingerprint'),
+  ingestionStatus: text('ingestion_status').notNull().default('ready'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const sourceRecordMatches = pgTable('source_record_matches', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  sourceRecordId: uuid('source_record_id').notNull().references(() => sourceRecords.id, { onDelete: 'cascade' }),
+  workId: uuid('work_id').notNull().references(() => works.id, { onDelete: 'cascade' }),
+  matchMethod: text('match_method').notNull(),
+  matchScore: numeric('match_score', { precision: 6, scale: 4 }).notNull().default('0'),
+  matchType: matchTypeEnum('match_type').notNull().default('probable'),
+  matchedOn: jsonb('matched_on').notNull().default({}),
+  isSelected: boolean('is_selected').notNull().default(false),
+  selectedBy: uuid('selected_by').references(() => profiles.id, { onDelete: 'set null' }),
+  selectedAt: timestamp('selected_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  sourceWorkUnique: uniqueIndex('source_record_matches_source_work_unique').on(table.sourceRecordId, table.workId),
+  sourceIdx: index('idx_source_record_matches_source').on(table.sourceRecordId),
+  workIdx: index('idx_source_record_matches_work').on(table.workId)
+}));
+
+export const workSourceSummaries = pgTable('work_source_summaries', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  workId: uuid('work_id').notNull().references(() => works.id, { onDelete: 'cascade' }),
+  sourceProviderId: uuid('source_provider_id').notNull().references(() => sourceProviders.id, { onDelete: 'cascade' }),
+  sourceRecordId: uuid('source_record_id').references(() => sourceRecords.id, { onDelete: 'set null' }),
+  externalId: text('external_id'),
+  externalUrl: text('external_url'),
+  displayTitle: text('display_title'),
+  displayCreator: text('display_creator'),
+  displayPublisher: text('display_publisher'),
+  isbn10: text('isbn_10'),
+  isbn13: text('isbn_13'),
+  asin: text('asin'),
+  rankValue: integer('rank_value'),
+  ratingValue: numeric('rating_value', { precision: 6, scale: 3 }),
+  reviewCount: integer('review_count'),
+  salesValue: numeric('sales_value', { precision: 15, scale: 2 }),
+  observedAt: timestamp('observed_at', { withTimezone: true }),
+  freshnessBucket: text('freshness_bucket'),
+  varianceNotes: text('variance_notes'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const workAggregateSummaries = pgTable('work_aggregate_summaries', {
+  workId: uuid('work_id').primaryKey().references(() => works.id, { onDelete: 'cascade' }),
+  organizationId: uuid('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  canonicalTitle: text('canonical_title').notNull(),
+  canonicalCreator: text('canonical_creator'),
+  canonicalPublisher: text('canonical_publisher'),
+  canonicalIsbn10: text('canonical_isbn_10'),
+  canonicalIsbn13: text('canonical_isbn_13'),
+  canonicalAsin: text('canonical_asin'),
+  aggregateDisplayRating: numeric('aggregate_display_rating', { precision: 6, scale: 3 }),
+  compositeScore: numeric('composite_score', { precision: 10, scale: 4 }).notNull().default('0'),
+  movementValue: integer('movement_value'),
+  sourceCoverageCount: integer('source_coverage_count').notNull().default(0),
+  freshestObservedAt: timestamp('freshest_observed_at', { withTimezone: true }),
+  confidenceScore: numeric('confidence_score', { precision: 5, scale: 4 }),
+  disagreementScore: numeric('disagreement_score', { precision: 5, scale: 4 }),
+  freshnessScore: numeric('freshness_score', { precision: 5, scale: 4 }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const workAggregateSummaryHistory = pgTable('work_aggregate_summary_history', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  workId: uuid('work_id').notNull().references(() => works.id, { onDelete: 'cascade' }),
+  compositeScore: numeric('composite_score', { precision: 10, scale: 4 }).notNull(),
+  aggregateDisplayRating: numeric('aggregate_display_rating', { precision: 6, scale: 3 }),
+  sourceCoverageCount: integer('source_coverage_count').notNull().default(0),
+  capturedAt: timestamp('captured_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const leaderboardSnapshots = pgTable('leaderboard_snapshots', {
   id:           uuid('id').primaryKey().defaultRandom(),
   snapshotDate: date('snapshot_date').notNull(),
@@ -518,4 +639,39 @@ export const workScoresRelations = relations(workScores, ({ one }) => ({
 
 export const ipScoresRelations = relations(ipScores, ({ one }) => ({
   franchise: one(franchises, { fields: [ipScores.franchiseId], references: [franchises.id] }),
+}));
+
+
+export const importFileRowsRelations = relations(importFileRows, ({ one }) => ({
+  importBatch: one(importBatches, { fields: [importFileRows.importBatchId], references: [importBatches.id] }),
+}));
+
+export const sourceRecordsRelations = relations(sourceRecords, ({ one, many }) => ({
+  organization: one(organizations, { fields: [sourceRecords.organizationId], references: [organizations.id] }),
+  sourceProvider: one(sourceProviders, { fields: [sourceRecords.sourceProviderId], references: [sourceProviders.id] }),
+  importBatch: one(importBatches, { fields: [sourceRecords.importBatchId], references: [importBatches.id] }),
+  importFileRow: one(importFileRows, { fields: [sourceRecords.importFileRowId], references: [importFileRows.id] }),
+  matches: many(sourceRecordMatches),
+  summaries: many(workSourceSummaries),
+}));
+
+export const sourceRecordMatchesRelations = relations(sourceRecordMatches, ({ one }) => ({
+  sourceRecord: one(sourceRecords, { fields: [sourceRecordMatches.sourceRecordId], references: [sourceRecords.id] }),
+  work: one(works, { fields: [sourceRecordMatches.workId], references: [works.id] }),
+  selectedByProfile: one(profiles, { fields: [sourceRecordMatches.selectedBy], references: [profiles.id] }),
+}));
+
+export const workSourceSummariesRelations = relations(workSourceSummaries, ({ one }) => ({
+  work: one(works, { fields: [workSourceSummaries.workId], references: [works.id] }),
+  sourceProvider: one(sourceProviders, { fields: [workSourceSummaries.sourceProviderId], references: [sourceProviders.id] }),
+  sourceRecord: one(sourceRecords, { fields: [workSourceSummaries.sourceRecordId], references: [sourceRecords.id] }),
+}));
+
+export const workAggregateSummariesRelations = relations(workAggregateSummaries, ({ one }) => ({
+  work: one(works, { fields: [workAggregateSummaries.workId], references: [works.id] }),
+  organization: one(organizations, { fields: [workAggregateSummaries.organizationId], references: [organizations.id] }),
+}));
+
+export const workAggregateSummaryHistoryRelations = relations(workAggregateSummaryHistory, ({ one }) => ({
+  work: one(works, { fields: [workAggregateSummaryHistory.workId], references: [works.id] }),
 }));
