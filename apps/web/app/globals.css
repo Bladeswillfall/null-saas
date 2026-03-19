@@ -721,6 +721,15 @@ main {
   gap: 0.75rem;
 }
 
+.analytics-panel {
+  display: grid;
+  gap: 0.875rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--panel);
+}
+
 .analytics-grid-2 {
   display: grid;
   gap: 1rem;
