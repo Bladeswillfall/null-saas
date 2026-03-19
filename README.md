@@ -8,6 +8,7 @@ NULL is an IP intelligence terminal for books, manga, manhwa, manhua, comics, an
 - App-level analytics domain types that keep product copy as `IP` while the current storage still maps through `franchises`.
 - tRPC namespaces for analytics IPs, works, source providers, external IDs, import batches, quality, leaderboard, and freshness.
 - Multipart CSV upload endpoint at `POST /api/imports/upload`.
+- Dashboard upload UI at `/dashboard/imports` for staging Goodreads and Amazon/Kindle CSV files into Supabase-backed import batches.
 
 ## Repo layout
 
@@ -29,9 +30,16 @@ supabase/
 ## Current workflow
 
 1. Create analytics IPs, works, source providers, and work external IDs in the catalog.
-2. Upload provider CSV files through `/api/imports/upload`.
+2. Upload provider CSV files through `/dashboard/imports` or `POST /api/imports/upload`.
 3. Normalize batches, resolve QC flags, and manually assign unmatched rows when needed.
 4. Rebuild scores to refresh leaderboard and detail evidence views.
+
+## Dashboard imports V1
+
+- V1 supports CSV uploads for Goodreads and Amazon/Kindle books providers.
+- Direct `.xlsx` parsing is not supported yet. Convert Goodreads Excel exports to `.csv` before uploading.
+- Uploaded files create rows in `public.import_batches` and stage mapped rows via `public.stage_import_rows(...)`.
+- See `docs/imports.md` for the end-to-end flow and provider mapping assumptions.
 
 ## Local setup
 
@@ -58,6 +66,6 @@ pnpm build
 
 ## Notes
 
-- This pass intentionally avoids editing `supabase/*`.
+- The dashboard imports V1 flow depends on the staging RPC/view SQL in `supabase/migrations/202603190002_import_staging_rpc.sql`.
 - Analytics services catch missing-table Postgres errors and return unavailable states so the dashboard shell does not fail auth or organization loading while the DB work is still pending.
-- `pnpm` is not currently available in the local environment, so verification commands have not been executed from this machine.
+- Verified locally with the focused import mapping test and the web app typecheck.
