@@ -21,15 +21,34 @@ export function LoginForm() {
     setIsLoading(true);
     setError(null);
 
+    console.log('[v0] Login attempt starting with email:', email);
+
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
+      
+      console.log('[v0] signInWithPassword result:', { 
+        hasUser: !!data?.user, 
+        hasSession: !!data?.session,
+        error: error?.message 
+      });
+      
       if (error) throw error;
+      
+      // Verify session was established
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log('[v0] Session after login:', {
+        hasSession: !!sessionData?.session,
+        userId: sessionData?.session?.user?.id
+      });
+      
+      console.log('[v0] Redirecting to:', dashboardHref);
       router.push(dashboardHref);
       router.refresh();
     } catch (err: unknown) {
+      console.log('[v0] Login error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsLoading(false);
