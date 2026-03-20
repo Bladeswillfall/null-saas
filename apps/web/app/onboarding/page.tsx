@@ -20,7 +20,7 @@ export default function OnboardingPage() {
 
   const createMutation = trpc.organization.create.useMutation({
     onSuccess: () => {
-      router.push('/dashboard');
+      router.push('/dashboard/imports');
       router.refresh();
     },
     onError: (err) => {

@@ -7,7 +7,7 @@ type CookieToSet = { name: string; value: string; options: CookieOptions };
 
 const protectedRoutes = ['/dashboard', '/onboarding'];
 const authRoutes = ['/auth/login', '/auth/sign-up'];
-const authenticatedHome = '/dashboard';
+const authenticatedHome = '/dashboard/imports';
 
 export async function updateSession(request: NextRequest) {
   // Create initial response - will be replaced in setAll
