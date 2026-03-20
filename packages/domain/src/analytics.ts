@@ -1,84 +1,135 @@
-export const analyticsMediaTypes = ['book', 'manga', 'manhwa', 'manhua', 'web_comic', 'comic'] as const;
+export const analyticsMediaTypes = [
+  "book",
+  "manga",
+  "manhwa",
+  "manhua",
+  "web_comic",
+  "comic",
+] as const;
 export type AnalyticsMediaType = (typeof analyticsMediaTypes)[number];
 
-export const analyticsTimeWindows = ['all_time', '5y', '1y', '6m', '3m', '1m', '2w', '1w'] as const;
+export const analyticsTimeWindows = [
+  "all_time",
+  "5y",
+  "1y",
+  "6m",
+  "3m",
+  "1m",
+  "2w",
+  "1w",
+] as const;
 export type AnalyticsTimeWindow = (typeof analyticsTimeWindows)[number];
 
-export const analyticsProvenanceTags = ['direct', 'estimated', 'engagement', 'awards', 'metadata'] as const;
+export const analyticsProvenanceTags = [
+  "direct",
+  "estimated",
+  "engagement",
+  "awards",
+  "metadata",
+] as const;
 export type AnalyticsProvenanceTag = (typeof analyticsProvenanceTags)[number];
 
 export const analyticsMetricTypes = [
-  'rank_position',
-  'rating_average',
-  'review_count',
-  'view_count',
-  'engagement_count',
-  'sales_value',
-  'award_signal',
-  'search_interest'
+  "rank_position",
+  "rating_average",
+  "review_count",
+  "view_count",
+  "engagement_count",
+  "sales_value",
+  "award_signal",
+  "search_interest",
 ] as const;
 export type AnalyticsMetricType = (typeof analyticsMetricTypes)[number];
 
 export const sourceFamilies = [
-  'ranking',
-  'reviews',
-  'awards',
-  'search',
-  'social',
-  'sales_estimated',
-  'sales_direct',
-  'metadata'
+  "ranking",
+  "reviews",
+  "awards",
+  "search",
+  "social",
+  "sales_estimated",
+  "sales_direct",
+  "metadata",
 ] as const;
 export type SourceFamily = (typeof sourceFamilies)[number];
 
-export const accessTypes = ['csv', 'api', 'scrape', 'manual'] as const;
+export const accessTypes = ["csv", "api", "scrape", "manual"] as const;
 export type AccessType = (typeof accessTypes)[number];
 
-export const confidenceTiers = ['gold', 'silver', 'bronze', 'community'] as const;
+export const confidenceTiers = [
+  "gold",
+  "silver",
+  "bronze",
+  "community",
+] as const;
 export type ConfidenceTier = (typeof confidenceTiers)[number];
 
-export const analyticsMatchTypes = ['exact', 'probable', 'manual'] as const;
+export const analyticsMatchTypes = ["exact", "probable", "manual"] as const;
 export type AnalyticsMatchType = (typeof analyticsMatchTypes)[number];
 
-export const importStatuses = ['pending', 'processing', 'complete', 'failed', 'partial'] as const;
+export const importStatuses = [
+  "pending",
+  "processing",
+  "complete",
+  "failed",
+  "partial",
+] as const;
 export type ImportStatus = (typeof importStatuses)[number];
 
-export const qualityFlagTypes = ['duplicate', 'outlier', 'missing_id', 'suspect_spike', 'low_sample', 'manual_review'] as const;
+export const qualityFlagTypes = [
+  "duplicate",
+  "outlier",
+  "missing_id",
+  "suspect_spike",
+  "low_sample",
+  "manual_review",
+] as const;
 export type QualityFlagType = (typeof qualityFlagTypes)[number];
 
-export const qualityFlagSeverities = ['info', 'warning', 'critical'] as const;
+export const qualityFlagSeverities = ["info", "warning", "critical"] as const;
 export type QualityFlagSeverity = (typeof qualityFlagSeverities)[number];
 
-export const scoreComponentTypes = ['ranking', 'reviews', 'momentum', 'awards', 'sales'] as const;
+export const scoreComponentTypes = [
+  "ranking",
+  "reviews",
+  "momentum",
+  "awards",
+  "sales",
+] as const;
 export type ScoreComponentType = (typeof scoreComponentTypes)[number];
 
-export const leaderboardSorts = ['rank', 'score', 'momentum', 'coverage'] as const;
+export const leaderboardSorts = [
+  "rank",
+  "score",
+  "momentum",
+  "coverage",
+] as const;
 export type LeaderboardSort = (typeof leaderboardSorts)[number];
 
 export const csvRequiredColumns = [
-  'source_provider',
-  'observed_at',
-  'title',
-  'ip_name',
-  'media_type',
-  'region',
-  'language',
-  'external_id',
-  'external_url'
+  "source_provider",
+  "observed_at",
+  "title",
+  "ip_name",
+  "media_type",
+  "region",
+  "language",
+  "external_id",
+  "external_url",
 ] as const;
 
 export const csvOptionalColumns = [
-  'rank_value',
-  'rating_value',
-  'review_count',
-  'view_count',
-  'engagement_count',
-  'sales_value',
-  'sales_is_estimated',
-  'award_name',
-  'award_result',
-  'metadata_json',
-  'search_interest'
+  "rank_value",
+  "rating_value",
+  "review_count",
+  "view_count",
+  "engagement_count",
+  "sales_value",
+  "sales_is_estimated",
+  "award_name",
+  "award_result",
+  "metadata_json",
+  "search_interest",
 ] as const;
 
 export const scoreComponentWeights: Record<ScoreComponentType, number> = {
@@ -86,7 +137,7 @@ export const scoreComponentWeights: Record<ScoreComponentType, number> = {
   reviews: 0.25,
   momentum: 0.2,
   sales: 0.1,
-  awards: 0.05
+  awards: 0.05,
 };
 
 export const provenanceMultipliers: Record<AnalyticsProvenanceTag, number> = {
@@ -94,7 +145,7 @@ export const provenanceMultipliers: Record<AnalyticsProvenanceTag, number> = {
   estimated: 0.7,
   engagement: 0.55,
   awards: 0.25,
-  metadata: 0.4
+  metadata: 0.4,
 };
 
 export const lowReviewSampleThreshold = 25;
@@ -104,8 +155,8 @@ export const leaderboardRankCap = 250;
 export const sourceFreshnessHours = 48;
 
 export type AnalyticsQueryResult<T> =
-  | { status: 'ready'; data: T }
-  | { status: 'unavailable'; data: T; reason: string };
+  | { status: "ready"; data: T }
+  | { status: "unavailable"; data: T; reason: string };
 
 export interface AnalyticsIp {
   id: string;
@@ -173,10 +224,25 @@ export interface ImportBatchSummary {
   sourceProviderSlug: string;
   importType: string;
   status: ImportStatus;
+  autoReviewStatus: "pending" | "ready" | "needs_manual_review" | "published";
   rowCount: number;
   errorCount: number;
   normalizedCount: number;
   unresolvedFlagCount: number;
+  sourceRecordCount: number;
+  reviewQueueCount: number;
+  publishedAt: Date | null;
+  reviewedAt: Date | null;
+  reviewedBy: string | null;
+  autoReviewSummary: {
+    invalidRowCount: number;
+    sourceRecordCount: number;
+    matchedCount: number;
+    needsReviewCount: number;
+    normalizedCount: number;
+    unresolvedCount: number;
+    flagCount: number;
+  } | null;
   startedAt: Date | null;
   completedAt: Date | null;
   createdAt: Date;
@@ -201,10 +267,10 @@ export interface QualityFlagRow {
 export interface LeaderboardFilters {
   organizationId: string;
   window: AnalyticsTimeWindow;
-  category?: AnalyticsMediaType | 'all';
+  category?: AnalyticsMediaType | "all";
   query?: string;
   source?: string;
-  confidence?: 'all' | 'high' | 'medium' | 'low';
+  confidence?: "all" | "high" | "medium" | "low";
   sort?: LeaderboardSort;
   limit?: number;
 }
@@ -218,7 +284,7 @@ export interface LeaderboardRow {
   compositeScore: number;
   momentumScore: number;
   confidenceScore: number;
-  confidenceBand: 'high' | 'medium' | 'low';
+  confidenceBand: "high" | "medium" | "low";
   rankOverall: number | null;
   rankInCategory: number | null;
   rankDelta: number | null;
@@ -302,7 +368,7 @@ export interface FreshnessRow {
   lastImportAt: string | null;
   lastCompletedAt: string | null;
   lastObservedAt: string | null;
-  latestStatus: ImportStatus | 'never';
+  latestStatus: ImportStatus | "never";
   batchCount: number;
   rawObservationCount: number;
   normalizedObservationCount: number;
@@ -347,47 +413,49 @@ export interface ImportedMetric {
 }
 
 export function availableResult<T>(data: T): AnalyticsQueryResult<T> {
-  return { status: 'ready', data };
+  return { status: "ready", data };
 }
 
 export function unavailableResult<T>(
   data: T,
-  reason = 'Analytics schema is unavailable. Apply the deferred Supabase changes before using this feature.'
+  reason = "Analytics schema is unavailable. Apply the deferred Supabase changes before using this feature.",
 ): AnalyticsQueryResult<T> {
-  return { status: 'unavailable', data, reason };
+  return { status: "unavailable", data, reason };
 }
 
 export function slugify(value: string): string {
   return value
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .replace(/-{2,}/g, '-');
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-");
 }
 
 export function canonicalizeTitle(value: string): string {
   return value
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
-    .replace(/['"`’]/g, '')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .replace(/\b(vol|volume|chapter|issue|edition)\b/g, ' ')
-    .replace(/\s+/g, ' ')
+    .replace(/['"`’]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\b(vol|volume|chapter|issue|edition)\b/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
-export function coerceNumber(value: string | number | null | undefined): number | null {
-  if (typeof value === 'number') {
+export function coerceNumber(
+  value: string | number | null | undefined,
+): number | null {
+  if (typeof value === "number") {
     return Number.isFinite(value) ? value : null;
   }
 
-  if (typeof value !== 'string') {
+  if (typeof value !== "string") {
     return null;
   }
 
-  const normalized = value.trim().replace(/,/g, '');
+  const normalized = value.trim().replace(/,/g, "");
   if (!normalized) {
     return null;
   }
@@ -396,12 +464,14 @@ export function coerceNumber(value: string | number | null | undefined): number 
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-export function coerceBoolean(value: string | boolean | null | undefined): boolean | null {
-  if (typeof value === 'boolean') {
+export function coerceBoolean(
+  value: string | boolean | null | undefined,
+): boolean | null {
+  if (typeof value === "boolean") {
     return value;
   }
 
-  if (typeof value !== 'string') {
+  if (typeof value !== "string") {
     return null;
   }
 
@@ -410,11 +480,11 @@ export function coerceBoolean(value: string | boolean | null | undefined): boole
     return null;
   }
 
-  if (['true', '1', 'yes', 'y'].includes(normalized)) {
+  if (["true", "1", "yes", "y"].includes(normalized)) {
     return true;
   }
 
-  if (['false', '0', 'no', 'n'].includes(normalized)) {
+  if (["false", "0", "no", "n"].includes(normalized)) {
     return false;
   }
 
@@ -422,17 +492,19 @@ export function coerceBoolean(value: string | boolean | null | undefined): boole
 }
 
 export function normalizeCsvHeader(value: string): string {
-  return value.trim().toLowerCase().replace(/\s+/g, '_');
+  return value.trim().toLowerCase().replace(/\s+/g, "_");
 }
 
-export function parseJsonObject(value: string | null | undefined): Record<string, unknown> {
+export function parseJsonObject(
+  value: string | null | undefined,
+): Record<string, unknown> {
   if (!value) {
     return {};
   }
 
   try {
     const parsed = JSON.parse(value);
-    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
       return parsed as Record<string, unknown>;
     }
   } catch {
@@ -448,7 +520,9 @@ export function parseCsv(text: string): ParsedCsvRow[] {
     return [];
   }
 
-  const headers = rows[0].map((header) => normalizeCsvHeader(header.replace(/^\uFEFF/, '')));
+  const headers = rows[0].map((header) =>
+    normalizeCsvHeader(header.replace(/^\uFEFF/, "")),
+  );
 
   return rows
     .slice(1)
@@ -460,21 +534,23 @@ export function parseCsv(text: string): ParsedCsvRow[] {
           return;
         }
 
-        values[header] = row[headerIndex] ?? '';
+        values[header] = row[headerIndex] ?? "";
       });
 
       return {
         line: index + 2,
-        values
+        values,
       };
     })
-    .filter((row) => Object.values(row.values).some((value) => value.trim() !== ''));
+    .filter((row) =>
+      Object.values(row.values).some((value) => value.trim() !== ""),
+    );
 }
 
 function parseCsvMatrix(text: string): string[][] {
   const rows: string[][] = [];
   let currentRow: string[] = [];
-  let currentValue = '';
+  let currentValue = "";
   let inQuotes = false;
 
   for (let index = 0; index < text.length; index += 1) {
@@ -491,21 +567,21 @@ function parseCsvMatrix(text: string): string[][] {
       continue;
     }
 
-    if (character === ',' && !inQuotes) {
+    if (character === "," && !inQuotes) {
       currentRow.push(currentValue);
-      currentValue = '';
+      currentValue = "";
       continue;
     }
 
-    if ((character === '\n' || character === '\r') && !inQuotes) {
-      if (character === '\r' && nextCharacter === '\n') {
+    if ((character === "\n" || character === "\r") && !inQuotes) {
+      if (character === "\r" && nextCharacter === "\n") {
         index += 1;
       }
 
       currentRow.push(currentValue);
       rows.push(currentRow);
       currentRow = [];
-      currentValue = '';
+      currentValue = "";
       continue;
     }
 
@@ -522,57 +598,92 @@ function parseCsvMatrix(text: string): string[][] {
 
 export function validateCsvHeaders(headers: string[]): string[] {
   const normalizedHeaders = headers.map((header) => normalizeCsvHeader(header));
-  return csvRequiredColumns.filter((column) => !normalizedHeaders.includes(column));
+  return csvRequiredColumns.filter(
+    (column) => !normalizedHeaders.includes(column),
+  );
 }
 
-export function validateCsvRow(values: Record<string, string>): CsvValidationError[] {
+export function validateCsvRow(
+  values: Record<string, string>,
+): CsvValidationError[] {
   const errors: CsvValidationError[] = [];
 
   csvRequiredColumns.forEach((column) => {
     if (!values[column]?.trim()) {
-      errors.push({ line: 0, field: column, message: `Missing required value for ${column}.` });
+      errors.push({
+        line: 0,
+        field: column,
+        message: `Missing required value for ${column}.`,
+      });
     }
   });
 
-  if (values.media_type && !analyticsMediaTypes.includes(values.media_type as AnalyticsMediaType)) {
-    errors.push({ line: 0, field: 'media_type', message: `Unsupported media_type "${values.media_type}".` });
+  if (
+    values.media_type &&
+    !analyticsMediaTypes.includes(values.media_type as AnalyticsMediaType)
+  ) {
+    errors.push({
+      line: 0,
+      field: "media_type",
+      message: `Unsupported media_type "${values.media_type}".`,
+    });
   }
 
-  if (values.observed_at && Number.isNaN(new Date(values.observed_at).getTime())) {
-    errors.push({ line: 0, field: 'observed_at', message: 'Invalid observed_at timestamp.' });
+  if (
+    values.observed_at &&
+    Number.isNaN(new Date(values.observed_at).getTime())
+  ) {
+    errors.push({
+      line: 0,
+      field: "observed_at",
+      message: "Invalid observed_at timestamp.",
+    });
   }
 
   const numericColumns: Array<keyof typeof values> = [
-    'rank_value',
-    'rating_value',
-    'review_count',
-    'view_count',
-    'engagement_count',
-    'sales_value',
-    'search_interest'
+    "rank_value",
+    "rating_value",
+    "review_count",
+    "view_count",
+    "engagement_count",
+    "sales_value",
+    "search_interest",
   ];
 
   numericColumns.forEach((column) => {
     const value = values[column];
     if (value?.trim() && coerceNumber(value) === null) {
-      errors.push({ line: 0, field: column, message: `${column} must be numeric.` });
+      errors.push({
+        line: 0,
+        field: column,
+        message: `${column} must be numeric.`,
+      });
     }
   });
 
-  if (values.sales_is_estimated?.trim() && coerceBoolean(values.sales_is_estimated) === null) {
-    errors.push({ line: 0, field: 'sales_is_estimated', message: 'sales_is_estimated must be true or false.' });
+  if (
+    values.sales_is_estimated?.trim() &&
+    coerceBoolean(values.sales_is_estimated) === null
+  ) {
+    errors.push({
+      line: 0,
+      field: "sales_is_estimated",
+      message: "sales_is_estimated must be true or false.",
+    });
   }
 
   return errors;
 }
 
-export function buildImportedMetrics(row: Record<string, string>): ImportedMetric[] {
+export function buildImportedMetrics(
+  row: Record<string, string>,
+): ImportedMetric[] {
   const metrics: ImportedMetric[] = [];
   const maybePush = (
     metricType: AnalyticsMetricType,
     rawValue: string | undefined,
     provenanceTag: AnalyticsProvenanceTag,
-    metricUnit: string | null = null
+    metricUnit: string | null = null,
   ) => {
     const value = coerceNumber(rawValue);
     if (value === null) {
@@ -583,29 +694,31 @@ export function buildImportedMetrics(row: Record<string, string>): ImportedMetri
       metricType,
       metricValue: value,
       metricUnit,
-      provenanceTag
+      provenanceTag,
     });
   };
 
-  maybePush('rank_position', row.rank_value, 'direct', 'position');
-  maybePush('rating_average', row.rating_value, 'direct', 'five_point');
-  maybePush('review_count', row.review_count, 'direct', 'count');
-  maybePush('view_count', row.view_count, 'engagement', 'count');
-  maybePush('engagement_count', row.engagement_count, 'engagement', 'count');
+  maybePush("rank_position", row.rank_value, "direct", "position");
+  maybePush("rating_average", row.rating_value, "direct", "five_point");
+  maybePush("review_count", row.review_count, "direct", "count");
+  maybePush("view_count", row.view_count, "engagement", "count");
+  maybePush("engagement_count", row.engagement_count, "engagement", "count");
 
-  const salesProvenance = coerceBoolean(row.sales_is_estimated) ? 'estimated' : 'direct';
-  maybePush('sales_value', row.sales_value, salesProvenance, 'currency');
+  const salesProvenance = coerceBoolean(row.sales_is_estimated)
+    ? "estimated"
+    : "direct";
+  maybePush("sales_value", row.sales_value, salesProvenance, "currency");
 
   if (row.award_name?.trim() || row.award_result?.trim()) {
     metrics.push({
-      metricType: 'award_signal',
+      metricType: "award_signal",
       metricValue: 1,
-      metricUnit: 'award',
-      provenanceTag: 'awards'
+      metricUnit: "award",
+      provenanceTag: "awards",
     });
   }
 
-  maybePush('search_interest', row.search_interest, 'engagement', 'index');
+  maybePush("search_interest", row.search_interest, "engagement", "index");
 
   return metrics;
 }
@@ -639,61 +752,114 @@ export function median(values: number[]): number {
 
 export function normalizeRankPosition(rank: number): number {
   const boundedRank = clamp(rank, 1, leaderboardRankCap);
-  return clamp(((leaderboardRankCap + 1 - boundedRank) / leaderboardRankCap) * 100, 0, 100);
-}
-
-export function scoreRankingObservations(observations: MetricObservation[]): number {
-  const rankingObservations = observations.filter((item) => item.metricType === 'rank_position' && item.value > 0);
-  return roundScore(
-    average(
-      rankingObservations.map((item) => normalizeRankPosition(item.value) * provenanceMultipliers[item.provenanceTag])
-    )
+  return clamp(
+    ((leaderboardRankCap + 1 - boundedRank) / leaderboardRankCap) * 100,
+    0,
+    100,
   );
 }
 
-export function scoreReviewObservations(observations: MetricObservation[]): number {
-  const ratings = observations.filter((item) => item.metricType === 'rating_average' && item.value > 0);
-  const reviewCounts = observations.filter((item) => item.metricType === 'review_count' && item.value >= 0);
+export function scoreRankingObservations(
+  observations: MetricObservation[],
+): number {
+  const rankingObservations = observations.filter(
+    (item) => item.metricType === "rank_position" && item.value > 0,
+  );
+  return roundScore(
+    average(
+      rankingObservations.map(
+        (item) =>
+          normalizeRankPosition(item.value) *
+          provenanceMultipliers[item.provenanceTag],
+      ),
+    ),
+  );
+}
+
+export function scoreReviewObservations(
+  observations: MetricObservation[],
+): number {
+  const ratings = observations.filter(
+    (item) => item.metricType === "rating_average" && item.value > 0,
+  );
+  const reviewCounts = observations.filter(
+    (item) => item.metricType === "review_count" && item.value >= 0,
+  );
 
   if (ratings.length === 0) {
     return 0;
   }
 
   const weightedRating = average(
-    ratings.map((item) => clamp((item.value / 5) * 100, 0, 100) * provenanceMultipliers[item.provenanceTag])
+    ratings.map(
+      (item) =>
+        clamp((item.value / 5) * 100, 0, 100) *
+        provenanceMultipliers[item.provenanceTag],
+    ),
   );
-  const sampleFactor = clamp(average(reviewCounts.map((item) => item.value)) / 1000, 0, 1);
+  const sampleFactor = clamp(
+    average(reviewCounts.map((item) => item.value)) / 1000,
+    0,
+    1,
+  );
 
   return roundScore(weightedRating * (0.4 + sampleFactor * 0.6));
 }
 
-export function scoreSalesObservations(observations: MetricObservation[]): number {
-  const sales = observations.filter((item) => item.metricType === 'sales_value' && item.value > 0);
+export function scoreSalesObservations(
+  observations: MetricObservation[],
+): number {
+  const sales = observations.filter(
+    (item) => item.metricType === "sales_value" && item.value > 0,
+  );
   return roundScore(
     average(
-      sales.map((item) => clamp((Math.log10(item.value + 1) / 6) * 100, 0, 100) * provenanceMultipliers[item.provenanceTag])
-    )
+      sales.map(
+        (item) =>
+          clamp((Math.log10(item.value + 1) / 6) * 100, 0, 100) *
+          provenanceMultipliers[item.provenanceTag],
+      ),
+    ),
   );
 }
 
-export function scoreAwardObservations(observations: MetricObservation[]): number {
-  const awards = observations.filter((item) => item.metricType === 'award_signal');
+export function scoreAwardObservations(
+  observations: MetricObservation[],
+): number {
+  const awards = observations.filter(
+    (item) => item.metricType === "award_signal",
+  );
   return roundScore(
     clamp(
-      awards.reduce((sum, item) => sum + 18 * provenanceMultipliers[item.provenanceTag], 0),
+      awards.reduce(
+        (sum, item) => sum + 18 * provenanceMultipliers[item.provenanceTag],
+        0,
+      ),
       0,
-      100
-    )
+      100,
+    ),
   );
 }
 
-export function scoreMomentumObservations(observations: MetricObservation[]): number {
+export function scoreMomentumObservations(
+  observations: MetricObservation[],
+): number {
   const ranked = observations
-    .filter((item) => item.metricType === 'rank_position')
-    .sort((left, right) => asTimestamp(left.observedAt) - asTimestamp(right.observedAt));
+    .filter((item) => item.metricType === "rank_position")
+    .sort(
+      (left, right) =>
+        asTimestamp(left.observedAt) - asTimestamp(right.observedAt),
+    );
   const searches = observations
-    .filter((item) => item.metricType === 'search_interest' || item.metricType === 'engagement_count')
-    .sort((left, right) => asTimestamp(left.observedAt) - asTimestamp(right.observedAt));
+    .filter(
+      (item) =>
+        item.metricType === "search_interest" ||
+        item.metricType === "engagement_count",
+    )
+    .sort(
+      (left, right) =>
+        asTimestamp(left.observedAt) - asTimestamp(right.observedAt),
+    );
 
   const parts: number[] = [];
 
@@ -715,61 +881,76 @@ export function scoreMomentumObservations(observations: MetricObservation[]): nu
   return roundScore(average(parts));
 }
 
-export function scoreConfidence(observations: MetricObservation[], sourceCoverageCount = 0): number {
+export function scoreConfidence(
+  observations: MetricObservation[],
+  sourceCoverageCount = 0,
+): number {
   if (observations.length === 0) {
     return 0;
   }
 
-  const provenanceAverage = average(observations.map((item) => provenanceMultipliers[item.provenanceTag]));
+  const provenanceAverage = average(
+    observations.map((item) => provenanceMultipliers[item.provenanceTag]),
+  );
   const coverageFactor = clamp(sourceCoverageCount / 5, 0, 1);
-  return roundConfidence(clamp(provenanceAverage * 0.7 + coverageFactor * 0.3, 0, 1));
-}
-
-export function getConfidenceBand(confidenceScore: number): 'high' | 'medium' | 'low' {
-  if (confidenceScore >= 0.75) {
-    return 'high';
-  }
-
-  if (confidenceScore >= 0.45) {
-    return 'medium';
-  }
-
-  return 'low';
-}
-
-export function computeCompositeScore(components: Record<ScoreComponentType, number>): number {
-  return roundScore(
-    scoreComponentTypes.reduce(
-      (sum, componentType) => sum + components[componentType] * scoreComponentWeights[componentType],
-      0
-    )
+  return roundConfidence(
+    clamp(provenanceAverage * 0.7 + coverageFactor * 0.3, 0, 1),
   );
 }
 
-export function getWindowStart(window: AnalyticsTimeWindow, scoreDate = new Date()): Date | null {
+export function getConfidenceBand(
+  confidenceScore: number,
+): "high" | "medium" | "low" {
+  if (confidenceScore >= 0.75) {
+    return "high";
+  }
+
+  if (confidenceScore >= 0.45) {
+    return "medium";
+  }
+
+  return "low";
+}
+
+export function computeCompositeScore(
+  components: Record<ScoreComponentType, number>,
+): number {
+  return roundScore(
+    scoreComponentTypes.reduce(
+      (sum, componentType) =>
+        sum + components[componentType] * scoreComponentWeights[componentType],
+      0,
+    ),
+  );
+}
+
+export function getWindowStart(
+  window: AnalyticsTimeWindow,
+  scoreDate = new Date(),
+): Date | null {
   const baseDate = new Date(scoreDate);
   switch (window) {
-    case 'all_time':
+    case "all_time":
       return null;
-    case '5y':
+    case "5y":
       baseDate.setFullYear(baseDate.getFullYear() - 5);
       return baseDate;
-    case '1y':
+    case "1y":
       baseDate.setFullYear(baseDate.getFullYear() - 1);
       return baseDate;
-    case '6m':
+    case "6m":
       baseDate.setMonth(baseDate.getMonth() - 6);
       return baseDate;
-    case '3m':
+    case "3m":
       baseDate.setMonth(baseDate.getMonth() - 3);
       return baseDate;
-    case '1m':
+    case "1m":
       baseDate.setMonth(baseDate.getMonth() - 1);
       return baseDate;
-    case '2w':
+    case "2w":
       baseDate.setDate(baseDate.getDate() - 14);
       return baseDate;
-    case '1w':
+    case "1w":
       baseDate.setDate(baseDate.getDate() - 7);
       return baseDate;
     default:

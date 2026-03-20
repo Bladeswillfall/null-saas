@@ -24,6 +24,9 @@ The dashboard import flow lives at `/dashboard/imports`.
    - creates a row in `public.import_batches`,
    - maps rows into the staging contract,
    - calls `public.stage_import_rows(...)`,
+   - materializes source records and auto-match candidates,
+   - runs QC / normalization checks,
+   - auto-publishes clean batches or marks the batch for manual confirmation,
    - updates the batch status to `complete`, `partial`, or `failed`.
 
 ## Tables and functions involved
@@ -80,12 +83,12 @@ Defaults:
 
 ## What to do after upload
 
-1. Review the import batch.
-2. Resolve unmatched rows.
-3. Rebuild scores.
+1. Check the batch auto-review status on `/dashboard/imports`.
+2. If the batch is flagged, review unresolved source rows in `/dashboard/leaderboard`.
+3. Confirm publish once the staged data looks correct.
 
 ## Recommended next follow-up
 
 - Add a dedicated unmatched-row review UI.
-- Add a first-class action to rebuild scores from the imports page.
+- Add first-class row editing on the imports page before final publish.
 - Add app-layer XLSX parsing before the staging call.
