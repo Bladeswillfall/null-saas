@@ -1,6 +1,10 @@
-import { z } from 'zod';
-import { protectedProcedure, router } from '../trpc';
-import { listImportBatches, normalizeImportBatch } from '../analytics-repo';
+import { z } from "zod";
+import { protectedProcedure, router } from "../trpc";
+import {
+  listImportBatches,
+  normalizeImportBatch,
+  publishImportBatch,
+} from "../analytics-repo";
 
 export const importBatchRouter = router({
   list: protectedProcedure
@@ -9,5 +13,9 @@ export const importBatchRouter = router({
 
   normalize: protectedProcedure
     .input(z.object({ batchId: z.string().uuid() }))
-    .mutation(({ ctx, input }) => normalizeImportBatch(ctx, input))
+    .mutation(({ ctx, input }) => normalizeImportBatch(ctx, input)),
+
+  publish: protectedProcedure
+    .input(z.object({ batchId: z.string().uuid() }))
+    .mutation(({ ctx, input }) => publishImportBatch(ctx, input)),
 });

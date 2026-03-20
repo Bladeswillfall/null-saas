@@ -9,6 +9,17 @@ export type UploadResult = {
   reviewCount: number;
   autoApproved: boolean;
   status: string;
+  autoReviewStatus: "pending" | "ready" | "needs_manual_review" | "published";
+  autoReviewSummary: {
+    invalidRowCount: number;
+    sourceRecordCount: number;
+    matchedCount: number;
+    needsReviewCount: number;
+    normalizedCount: number;
+    unresolvedCount: number;
+    flagCount: number;
+  };
+  published: boolean;
   message: string;
   invalidRows?: Array<{ line: number; message: string }>;
 };
@@ -19,9 +30,12 @@ export function ImportResultCard({ result }: { result: UploadResult | null }) {
   }
 
   return (
-    <div className="analytics-panel" style={{ marginTop: '1rem', background: 'var(--panel-subtle)' }}>
+    <div
+      className="analytics-panel"
+      style={{ marginTop: "1rem", background: "var(--panel-subtle)" }}
+    >
       <h3 style={{ marginTop: 0 }}>Upload staged successfully</h3>
-      <dl className="analytics-grid-4" style={{ marginBottom: '1rem' }}>
+      <dl className="analytics-grid-4" style={{ marginBottom: "1rem" }}>
         <div>
           <dt>File name</dt>
           <dd>{result.fileName}</dd>
@@ -39,6 +53,14 @@ export function ImportResultCard({ result }: { result: UploadResult | null }) {
           <dd>{result.status}</dd>
         </div>
         <div>
+          <dt>Auto review</dt>
+          <dd>{result.autoReviewStatus}</dd>
+        </div>
+        <div>
+          <dt>Published</dt>
+          <dd>{result.published ? "Yes" : "Needs confirmation"}</dd>
+        </div>
+        <div>
           <dt>Rows received</dt>
           <dd>{result.rowsReceived}</dd>
         </div>
@@ -51,8 +73,16 @@ export function ImportResultCard({ result }: { result: UploadResult | null }) {
           <dd>{result.rowsInvalid}</dd>
         </div>
         <div>
+          <dt>Rows matched</dt>
+          <dd>{result.autoReviewSummary.matchedCount}</dd>
+        </div>
+        <div>
           <dt>Needs review</dt>
-          <dd>{result.reviewCount}</dd>
+          <dd>{result.autoReviewSummary.needsReviewCount}</dd>
+        </div>
+        <div>
+          <dt>QC flags</dt>
+          <dd>{result.autoReviewSummary.flagCount}</dd>
         </div>
         <div>
           <dt>Message</dt>
@@ -61,20 +91,22 @@ export function ImportResultCard({ result }: { result: UploadResult | null }) {
       </dl>
 
       {result.invalidRows && result.invalidRows.length > 0 ? (
-        <div style={{ marginBottom: '1rem' }}>
+        <div style={{ marginBottom: "1rem" }}>
           <strong>Invalid rows</strong>
           <ul>
             {result.invalidRows.slice(0, 5).map((row) => (
-              <li key={`${row.line}-${row.message}`}>Line {row.line}: {row.message}</li>
+              <li key={`${row.line}-${row.message}`}>
+                Line {row.line}: {row.message}
+              </li>
             ))}
           </ul>
         </div>
       ) : null}
 
       <p style={{ marginBottom: 0 }}>
-        {result.autoApproved
-          ? 'Automatic review cleared this upload and deployed it to the live analytics pipeline.'
-          : 'Next actions: review the staged rows, save any fixes, rerun automatic review, then approve the batch to deploy it live.'}
+        {result.published
+          ? "Next actions: Verify the live leaderboard output and keep an eye on new review candidates."
+          : "Next actions: Review flagged rows in the web app, resolve anything suspicious, then confirm publish."}
       </p>
     </div>
   );
