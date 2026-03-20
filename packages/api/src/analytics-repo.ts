@@ -657,25 +657,18 @@ export async function listSourceProviders(
   await requireOrganizationMember(ctx, input.organizationId);
 
   return withAnalyticsQuery([], async () => {
-    // Only fetch batches for this organization
-    const batchRows = await ctx.db
-      .select()
-      .from(importBatches)
-      .where(eq(importBatches.organizationId, input.organizationId));
-
-    // Get unique provider IDs used by this org
-    const providerIds = [...new Set(batchRows.map((row) => row.sourceProviderId))];
-
-    // If no imports, return empty list
-    if (providerIds.length === 0) {
-      return [];
-    }
-
-    // Fetch only providers used by this organization
-    const providerRows = await ctx.db
-      .select()
-      .from(sourceProviders)
-      .where(inArray(sourceProviders.id, providerIds));
+    // Source providers are a shared registry (not organization-specific)
+    // Fetch all active providers and the organization's import batches
+    const [providerRows, batchRows] = await Promise.all([
+      ctx.db
+        .select()
+        .from(sourceProviders)
+        .where(eq(sourceProviders.isActive, true)),
+      ctx.db
+        .select()
+        .from(importBatches)
+        .where(eq(importBatches.organizationId, input.organizationId))
+    ]);
 
     const batchMap = new Map<string, Array<typeof importBatches.$inferSelect>>();
     batchRows.forEach((row) => {
