@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { Button, Input, Label } from '@null/ui';
 
-const dashboardHref = '/dashboard';
+const dashboardHref = '/dashboard/imports';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');

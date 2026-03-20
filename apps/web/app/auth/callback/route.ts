@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
-const defaultNextPath = '/dashboard';
+const defaultNextPath = '/dashboard/imports';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
