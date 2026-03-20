@@ -31,14 +31,14 @@ supabase/
 
 1. Create analytics IPs, works, source providers, and work external IDs in the catalog.
 2. Upload provider CSV files through `/dashboard/imports` or `POST /api/imports/upload`.
-3. Normalize batches, resolve QC flags, and manually assign unmatched rows when needed.
-4. Rebuild scores to refresh leaderboard and detail evidence views.
+3. Let the automatic review workflow stage rows, generate matches/QC flags, and either auto-publish clean batches or hold flagged batches for manual confirmation.
+4. Resolve review issues when needed, then confirm publish to refresh live leaderboard and detail evidence views.
 
 ## Dashboard imports V1
 
 - V1 supports CSV uploads for Goodreads and Amazon/Kindle books providers.
 - Direct `.xlsx` parsing is not supported yet. Convert Goodreads Excel exports to `.csv` before uploading.
-- Uploaded files create rows in `public.import_batches` and stage mapped rows via `public.stage_import_rows(...)`.
+- Uploaded files create rows in `public.import_batches`, stage mapped rows via `public.stage_import_rows(...)`, and immediately run the automatic review workflow for source matching/QC.
 - See `docs/imports.md` for the end-to-end flow and provider mapping assumptions.
 
 ## Local setup
