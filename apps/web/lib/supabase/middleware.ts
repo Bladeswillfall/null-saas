@@ -39,15 +39,8 @@ export async function updateSession(request: NextRequest) {
 
   // Do not run code between createServerClient and supabase.auth.getUser().
   // A simple mistake could make it very hard to debug issues with users being randomly logged out.
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
-  
-  console.log('[v0] Middleware:', {
-    pathname,
-    hasUser: !!user,
-    userId: user?.id,
-    userError: userError?.message
-  });
 
   // Redirect authenticated users away from auth pages to dashboard
   if (user && authRoutes.some(route => pathname.startsWith(route))) {
