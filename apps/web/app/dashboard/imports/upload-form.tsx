@@ -5,6 +5,32 @@ import { useRouter } from 'next/navigation';
 import { Button, Input, Label } from '@null/ui';
 import { ImportResultCard, type UploadResult } from './import-result-card';
 
+async function readUploadResponse(response: Response) {
+  const contentType = response.headers.get('content-type') ?? '';
+
+  if (contentType.includes('application/json')) {
+    return (await response.json()) as UploadResult & { error?: string };
+  }
+
+  const text = (await response.text()).trim();
+  return {
+    ok: response.ok,
+    error: text || `Upload failed with status ${response.status}.`
+  } as UploadResult & { error?: string };
+}
+
+function toUploadErrorMessage(uploadError: unknown) {
+  if (uploadError instanceof TypeError) {
+    return 'The upload request did not complete. Check the server logs or browser network panel for the failed /api/imports/upload request.';
+  }
+
+  if (uploadError instanceof Error) {
+    return uploadError.message;
+  }
+
+  return 'Upload failed.';
+}
+
 export function UploadForm({
   organizationId,
   providers,
@@ -60,9 +86,13 @@ export function UploadForm({
     try {
       const response = await fetch('/api/imports/upload', {
         method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          Accept: 'application/json'
+        },
         body: formData
       });
-      const payload = (await response.json()) as UploadResult & { error?: string };
+      const payload = await readUploadResponse(response);
 
       if (!response.ok) {
         throw new Error(payload.error ?? 'Upload failed.');
@@ -77,7 +107,7 @@ export function UploadForm({
       }
       router.refresh();
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : 'Upload failed.');
+      setError(toUploadErrorMessage(uploadError));
     } finally {
       setIsUploading(false);
     }
