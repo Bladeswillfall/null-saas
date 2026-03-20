@@ -47,15 +47,20 @@ export async function POST(request: Request) {
     }
 
     const { data: membership, error: membershipError } = await (supabase as any)
-      .from('organization_members')
-      .select('role')
-      .eq('organization_id', organizationId)
-      .eq('user_id', user.id)
-      .maybeSingle();
+  .from('organization_members')
+  .select('role')
+  .eq('organization_id', organizationId)
+  .eq('user_id', user.id)
+  .maybeSingle();
 
-    if (membershipError || !membership || !['admin', 'owner'].includes(membership.role)) {
-      return errorResponse('You must be an organization admin to upload imports for this organization.', 403);
-    }
+if (membershipError || !membership || !['admin', 'owner'].includes(membership.role)) {
+  return errorResponse(
+    `Upload auth failed: user=${user.id} org=${organizationId} membership=${JSON.stringify(
+      membership ?? null
+    )} membershipError=${membershipError?.message ?? 'none'}`,
+    403
+  );
+}
 
     const { data: provider, error: providerError } = await (supabase as any)
       .from('source_providers')
