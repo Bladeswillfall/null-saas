@@ -6,6 +6,8 @@ export type UploadResult = {
   rowsReceived: number;
   rowsInserted: number;
   rowsInvalid: number;
+  reviewCount: number;
+  autoApproved: boolean;
   status: string;
   message: string;
   invalidRows?: Array<{ line: number; message: string }>;
@@ -49,6 +51,10 @@ export function ImportResultCard({ result }: { result: UploadResult | null }) {
           <dd>{result.rowsInvalid}</dd>
         </div>
         <div>
+          <dt>Needs review</dt>
+          <dd>{result.reviewCount}</dd>
+        </div>
+        <div>
           <dt>Message</dt>
           <dd>{result.message}</dd>
         </div>
@@ -66,7 +72,9 @@ export function ImportResultCard({ result }: { result: UploadResult | null }) {
       ) : null}
 
       <p style={{ marginBottom: 0 }}>
-        Next actions: Review this batch, resolve unmatched rows, and rebuild scores.
+        {result.autoApproved
+          ? 'Automatic review cleared this upload and deployed it to the live analytics pipeline.'
+          : 'Next actions: review the staged rows, save any fixes, rerun automatic review, then approve the batch to deploy it live.'}
       </p>
     </div>
   );

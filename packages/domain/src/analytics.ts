@@ -40,7 +40,7 @@ export type ConfidenceTier = (typeof confidenceTiers)[number];
 export const analyticsMatchTypes = ['exact', 'probable', 'manual'] as const;
 export type AnalyticsMatchType = (typeof analyticsMatchTypes)[number];
 
-export const importStatuses = ['pending', 'processing', 'complete', 'failed', 'partial'] as const;
+export const importStatuses = ['pending', 'processing', 'review', 'complete', 'failed', 'partial'] as const;
 export type ImportStatus = (typeof importStatuses)[number];
 
 export const qualityFlagTypes = ['duplicate', 'outlier', 'missing_id', 'suspect_spike', 'low_sample', 'manual_review'] as const;

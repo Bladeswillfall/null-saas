@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
+import { loadFormattedImportRows, rebuildBatchRawObservations, rebuildBatchSourceRecords } from '@/lib/import-workflow';
 import { mapRowsForProvider, parseCsvUpload, validateImportFile } from '@/lib/imports';
+import { createContext, matchSourceRecordsForBatch, normalizeImportBatch, rebuildScores } from '@null/api';
 
 export const runtime = 'nodejs';
 
@@ -153,7 +155,43 @@ if (membershipError || !membership || !['admin', 'owner'].includes(membership.ro
 
     const rowsInserted = stageSummary?.inserted_count ?? 0;
     const rowsInvalid = (stageSummary?.invalid_count ?? 0) + invalidRows.length;
-    const status = rowsInserted === 0 ? 'failed' : rowsInvalid > 0 ? 'partial' : 'complete';
+    let status: 'failed' | 'review' | 'complete' = rowsInserted === 0 ? 'failed' : 'review';
+    let reviewCount = 0;
+    let autoApproved = false;
+
+    if (rowsInserted > 0) {
+      const ctx = createContext({ supabase: supabase as any, user });
+      const formattedRows = await loadFormattedImportRows(supabase, batch.id);
+      await rebuildBatchSourceRecords(supabase, {
+        batchId: batch.id,
+        organizationId,
+        sourceProviderId: provider.id,
+        rows: formattedRows
+      });
+      const reviewResult = await matchSourceRecordsForBatch(ctx, {
+        batchId: batch.id,
+        selectedBy: user.id,
+        reviewOnly: true
+      });
+      reviewCount = reviewResult.reviewCount;
+
+      if (rowsInvalid === 0 && reviewCount === 0) {
+        await rebuildBatchRawObservations(supabase, {
+          batchId: batch.id,
+          sourceProviderId: provider.id,
+          rows: formattedRows,
+          fileName: file.name
+        });
+        await matchSourceRecordsForBatch(ctx, {
+          batchId: batch.id,
+          selectedBy: user.id
+        });
+        await normalizeImportBatch(ctx, { batchId: batch.id });
+        await rebuildScores(ctx, { organizationId });
+        status = 'complete';
+        autoApproved = true;
+      }
+    }
 
     const { error: completeError } = await (supabase as any)
       .from('import_batches')
@@ -178,8 +216,12 @@ if (membershipError || !membership || !['admin', 'owner'].includes(membership.ro
       rowsReceived,
       rowsInserted,
       rowsInvalid,
+      reviewCount,
+      autoApproved,
       status,
-      message: 'Import staged successfully.',
+      message: autoApproved
+        ? 'Import reviewed and deployed automatically.'
+        : 'Import staged and reviewed. Human approval is required before deployment.',
       invalidRows
     });
   } catch (error) {

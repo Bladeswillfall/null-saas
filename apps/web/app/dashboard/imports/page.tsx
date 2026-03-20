@@ -1,7 +1,7 @@
 import { createServerTRPCClient } from '@/lib/trpc/server';
 import { AnalyticsStateNotice } from '../_components/analytics-ui';
 import { UploadForm } from './upload-form';
-import { ImportBatchesTable } from './import-batches-table';
+import { ImportBatchesPanel } from './import-batches-panel';
 
 export default async function ImportsPage() {
   const trpc = await createServerTRPCClient();
@@ -73,22 +73,24 @@ export default async function ImportsPage() {
           <ul>
             <li>CSV files are supported in this dashboard flow.</li>
             <li>Convert Goodreads Excel files to CSV before uploading.</li>
-            <li>After staging, review the batch, resolve unmatched rows, then rebuild scores.</li>
+            <li>After upload, the automatic review checks staged rows and attempts to prepare deployable matches.</li>
+            <li>If issues remain, fix the staged rows in the review panel and approve the batch manually.</li>
           </ul>
         </div>
         <div className="analytics-panel">
           <h2>What happens after upload?</h2>
-          <p>Your file is parsed in the app, mapped into staged import rows, then stored through the Supabase import pipeline.</p>
+          <p>Your file is parsed in the app, mapped into staged import rows, then run through an automatic review before deployment.</p>
           <ul>
             <li><strong>Batch created:</strong> a row is written to <code>public.import_batches</code>.</li>
             <li><strong>Rows staged:</strong> mapped rows are inserted through <code>public.stage_import_rows(...)</code>.</li>
-            <li><strong>Next steps:</strong> review the batch, resolve unmatched rows, and rebuild scores.</li>
+            <li><strong>Automatic review:</strong> source records and match candidates are prepared immediately after staging.</li>
+            <li><strong>Deployment:</strong> batches auto-deploy when no issues are found, or wait for owner approval after review.</li>
           </ul>
         </div>
       </section>
 
       <UploadForm organizationId={organization?.id ?? null} providers={providers} loadError={loadError} />
-      <ImportBatchesTable batches={batches} />
+      <ImportBatchesPanel batches={batches} />
     </main>
   );
 }

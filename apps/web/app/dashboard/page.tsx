@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { Button } from '@null/ui';
 import { createServerTRPCClient } from '@/lib/trpc/server';
-import { AnalyticsStateNotice, SectionCard } from './_components/analytics-ui';
+import { formatCompactNumber, formatDateTime } from '@/lib/analytics';
+import { AnalyticsStateNotice, SectionCard, StatCard } from './_components/analytics-ui';
 
 async function loadDashboardShell() {
   const trpc = await createServerTRPCClient();
@@ -17,23 +18,27 @@ async function loadDashboardShell() {
       };
     }
 
-    // TODO: Restore trpc.leaderboard.overview.query(...) after analytics query performance is fixed.
+    const overview = await trpc.leaderboard.overview.query({ organizationId: currentOrganization.id });
     return {
       organizationId: currentOrganization.id,
-      organizationError: null
+      organizationError: null,
+      overview
     };
   } catch (error) {
     console.error('Failed to load dashboard shell', error);
 
     return {
       organizationId: null,
-      organizationError: 'Dashboard data is not available yet. Check your database configuration and organization setup, then refresh.'
+      organizationError: 'Dashboard data is not available yet. Check your database configuration and organization setup, then refresh.',
+      overview: null
     };
   }
 }
 
 export default async function DashboardPage() {
-  const { organizationId, organizationError } = await loadDashboardShell();
+  const { organizationId, organizationError, overview } = await loadDashboardShell();
+  const overviewData = overview?.status === 'ready' ? overview.data : null;
+  const overviewReason = overview?.status === 'unavailable' ? overview.reason : null;
 
   return (
     <main className="stack">
@@ -47,17 +52,28 @@ export default async function DashboardPage() {
           title="Dashboard setup still needed"
           body={organizationError}
         />
-      ) : (
+      ) : overviewReason ? (
         <AnalyticsStateNotice
-          title="Analytics overview temporarily disabled"
-          body="Overview analytics are temporarily bypassed while leaderboard query performance is being fixed. Use the links below to continue working."
+          title="Analytics overview unavailable"
+          body={overviewReason}
         />
-      )}
+      ) : null}
+
+      {overviewData ? (
+        <section className="analytics-grid-4">
+          <StatCard label="Top Works" value={formatCompactNumber(overviewData.topWorkCount)} caption="Leaderboard rows in the latest weekly snapshot" />
+          <StatCard label="Active IPs" value={formatCompactNumber(overviewData.activeIpCount)} caption="Tracked franchises currently returned by analytics" />
+          <StatCard label="Tracked Works" value={formatCompactNumber(overviewData.trackedWorkCount)} caption="Canonical works available to score and review" />
+          <StatCard label="Open Flags" value={formatCompactNumber(overviewData.unresolvedFlagCount)} caption="Unresolved quality flags still affecting review readiness" />
+        </section>
+      ) : null}
 
       <section className="analytics-grid-2">
         <SectionCard
           title="Navigation"
-          description="Open the main dashboard areas without waiting for analytics overview data to load."
+          description={overviewData
+            ? `Latest import ${formatDateTime(overviewData.latestImportAt)} · latest score snapshot ${formatDateTime(overviewData.latestScoreDate)}.`
+            : 'Open the main dashboard areas while analytics overview data is unavailable.'}
         >
           <div className="analytics-links">
             <Link href="/dashboard/imports">Imports &amp; QC</Link>
@@ -70,7 +86,9 @@ export default async function DashboardPage() {
 
         <SectionCard
           title="Admin Actions"
-          description="Catalog curation remains available even while overview analytics are disabled."
+          description={overviewData
+            ? `Manage ${formatCompactNumber(overviewData.sourceProviderCount)} connected source providers and keep import approvals flowing.`
+            : 'Catalog curation remains available even when overview analytics are unavailable.'}
           action={organizationId ? (
             <Button asChild variant="secondary">
               <Link href="/dashboard/catalog">Open Catalog</Link>
