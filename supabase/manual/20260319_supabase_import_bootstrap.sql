@@ -130,6 +130,7 @@ for each row execute procedure public.handle_new_user();
 create or replace function public.is_org_member(lookup_org_id uuid)
 returns boolean
 language sql
+security definer
 stable
 set search_path = public
 as $$
@@ -144,6 +145,7 @@ $$;
 create or replace function public.is_org_admin(lookup_org_id uuid)
 returns boolean
 language sql
+security definer
 stable
 set search_path = public
 as $$

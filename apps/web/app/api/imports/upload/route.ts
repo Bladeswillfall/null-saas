@@ -13,6 +13,8 @@ function errorResponse(message: string, status = 400) {
 }
 
 export async function POST(request: Request) {
+  const requestId = crypto.randomUUID();
+
   try {
     const supabase = await createClient();
     const {
@@ -54,10 +56,15 @@ export async function POST(request: Request) {
   .maybeSingle();
 
 if (membershipError || !membership || !['admin', 'owner'].includes(membership.role)) {
+  console.error('[imports/upload] Organization upload auth failed', {
+    requestId,
+    userId: user.id,
+    organizationId,
+    membership,
+    membershipError
+  });
   return errorResponse(
-    `Upload auth failed: user=${user.id} org=${organizationId} membership=${JSON.stringify(
-      membership ?? null
-    )} membershipError=${membershipError?.message ?? 'none'}`,
+    'You must be an organization admin to upload imports for this organization.',
     403
   );
 }
@@ -69,7 +76,7 @@ if (membershipError || !membership || !['admin', 'owner'].includes(membership.ro
       .maybeSingle();
 
     if (providerError) {
-      console.error('[imports/upload] Failed to load provider', providerError);
+      console.error('[imports/upload] Failed to load provider', { requestId, providerError });
       return errorResponse('We could not verify that provider just now.', 500);
     }
 
@@ -101,7 +108,7 @@ if (membershipError || !membership || !['admin', 'owner'].includes(membership.ro
       .single();
 
     if (batchError || !batch) {
-      console.error('[imports/upload] Failed to create import batch', batchError);
+      console.error('[imports/upload] Failed to create import batch', { requestId, batchError });
       return errorResponse('We could not create the import batch.', 500);
     }
 
@@ -129,7 +136,7 @@ if (membershipError || !membership || !['admin', 'owner'].includes(membership.ro
     });
 
     if (stageError) {
-      console.error('[imports/upload] Failed to stage rows', stageError);
+      console.error('[imports/upload] Failed to stage rows', { requestId, stageError });
       await (supabase as any)
         .from('import_batches')
         .update({
@@ -159,7 +166,7 @@ if (membershipError || !membership || !['admin', 'owner'].includes(membership.ro
       .eq('id', batch.id);
 
     if (completeError) {
-      console.error('[imports/upload] Failed to finalize batch', completeError);
+      console.error('[imports/upload] Failed to finalize batch', { requestId, completeError });
       return errorResponse('The upload reached staging, but we could not finalize the batch status.', 500);
     }
 
@@ -176,7 +183,7 @@ if (membershipError || !membership || !['admin', 'owner'].includes(membership.ro
       invalidRows
     });
   } catch (error) {
-    console.error('[imports/upload] Unexpected error', error);
+    console.error('[imports/upload] Unexpected error', { requestId, error });
     return errorResponse('Internal server error', 500);
   }
 }
