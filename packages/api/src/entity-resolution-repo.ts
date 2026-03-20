@@ -391,33 +391,39 @@ export async function ingestSourceRecordsForBatch(ctx: AnalyticsContext, batchId
   return { count: insertedRows.length };
 }
 
-export async function matchSourceRecordsForBatch(ctx: AnalyticsContext, input: { batchId: string; selectedBy?: string | null }) {
+export async function matchSourceRecordsForBatch(ctx: AnalyticsContext, input: { batchId: string; selectedBy?: string | null; reviewOnly?: boolean }) {
   const [batch] = await ctx.db.select().from(importBatches).where(eq(importBatches.id, input.batchId)).limit(1);
   if (!batch) throw new TRPCError({ code: 'NOT_FOUND', message: 'Import batch not found.' });
   const records = await ctx.db.select().from(sourceRecords).where(eq(sourceRecords.importBatchId, batch.id));
   const touchedWorkIds = new Set<string>();
+  let reviewCount = 0;
   for (const record of records) {
     const candidates = await findMatchCandidates(ctx, record);
     const inserted = await upsertMatchCandidates(ctx, record.id, candidates, input.selectedBy ?? null);
     const selected = inserted.find((match) => match.isSelected);
     if (selected) {
       touchedWorkIds.add(selected.workId);
-      await syncExternalId(ctx, {
-        workId: selected.workId,
-        sourceProviderId: record.sourceProviderId,
-        externalId: record.externalId ?? record.rawAsin ?? record.rawIsbn13 ?? record.rawIsbn10,
-        externalUrl: record.externalUrl,
-        matchType: selected.matchType as 'exact' | 'probable' | 'manual'
-      });
+      if (!input.reviewOnly) {
+        await syncExternalId(ctx, {
+          workId: selected.workId,
+          sourceProviderId: record.sourceProviderId,
+          externalId: record.externalId ?? record.rawAsin ?? record.rawIsbn13 ?? record.rawIsbn10,
+          externalUrl: record.externalUrl,
+          matchType: selected.matchType as 'exact' | 'probable' | 'manual'
+        });
+      }
       await ctx.db.update(sourceRecords).set({ ingestionStatus: 'matched' }).where(eq(sourceRecords.id, record.id));
     } else {
+      reviewCount += 1;
       await ctx.db.update(sourceRecords).set({ ingestionStatus: 'needs_review' }).where(eq(sourceRecords.id, record.id));
     }
   }
-  for (const workId of touchedWorkIds) {
-    await rebuildWorkSummaries(ctx, workId);
+  if (!input.reviewOnly) {
+    for (const workId of touchedWorkIds) {
+      await rebuildWorkSummaries(ctx, workId);
+    }
   }
-  return { matchedCount: touchedWorkIds.size };
+  return { matchedCount: touchedWorkIds.size, reviewCount, workIds: [...touchedWorkIds] };
 }
 
 export async function getWorkDashboardRows(ctx: AnalyticsContext, input: { organizationId: string; page?: number; pageSize?: number; sort?: typeof workDashboardSorts[number] }) {

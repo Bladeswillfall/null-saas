@@ -816,7 +816,7 @@ type Enums = {
   access_type_enum: 'csv' | 'api' | 'scrape' | 'manual';
   confidence_tier_enum: 'gold' | 'silver' | 'bronze' | 'community';
   match_type_enum: 'exact' | 'probable' | 'manual';
-  import_status_enum: 'pending' | 'processing' | 'complete' | 'failed' | 'partial';
+  import_status_enum: 'pending' | 'processing' | 'review' | 'complete' | 'failed' | 'partial';
   provenance_tag_enum: 'direct' | 'estimated' | 'engagement' | 'awards' | 'metadata';
   flag_type_enum: 'duplicate' | 'outlier' | 'missing_id' | 'suspect_spike' | 'low_sample' | 'manual_review';
   flag_severity_enum: 'info' | 'warning' | 'critical';

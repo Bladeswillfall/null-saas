@@ -314,6 +314,8 @@ export async function POST(request: Request) {
       rowsReceived,
       rowsInserted,
       rowsInvalid,
+      reviewCount,
+      autoApproved,
       status,
       autoReviewStatus: autoReview.autoReviewStatus,
       autoReviewSummary: autoReview.autoReviewSummary,

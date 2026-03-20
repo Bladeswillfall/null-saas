@@ -6,6 +6,8 @@ export type UploadResult = {
   rowsReceived: number;
   rowsInserted: number;
   rowsInvalid: number;
+  reviewCount: number;
+  autoApproved: boolean;
   status: string;
   autoReviewStatus: "pending" | "ready" | "needs_manual_review" | "published";
   autoReviewSummary: {
