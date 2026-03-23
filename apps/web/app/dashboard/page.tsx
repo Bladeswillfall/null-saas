@@ -59,10 +59,18 @@ export default async function DashboardPage() {
         />
       ) : null}
 
-      {overviewData?.importedButUnresolved ? (
+      {overviewData?.rawObservationFallbackActive ? (
+        <AnalyticsStateNotice
+          title="Showing raw observation data"
+          body={`Source records have not been promoted yet. Displaying ${formatCompactNumber(overviewData.rawObservationCount)} raw observation rows as a fallback. This count will be replaced once import promotion completes.`}
+          tone="info"
+        />
+      ) : null}
+
+      {!overviewData?.rawObservationFallbackActive && overviewData?.importedButUnresolved ? (
         <AnalyticsStateNotice
           title="Imported data pending resolution"
-          body="Imported data is present, but canonical works have not been resolved yet. Once imports are processed and matched to canonical works, this will reflect in your dashboard."
+          body="Source records are present but canonical works have not been resolved yet. Once imports are processed and matched to canonical works, leaderboard and scoring data will appear here."
           tone="info"
         />
       ) : null}
@@ -70,15 +78,32 @@ export default async function DashboardPage() {
       {overviewData?.resolvedButNotScored ? (
         <AnalyticsStateNotice
           title="Canonical works pending scoring"
-          body="Canonical works exist, but scores have not been rebuilt yet. Run the score rebuild process to calculate performance metrics across all works."
+          body="Canonical works exist but scores have not been rebuilt yet. Run the score rebuild process to calculate performance metrics across all works."
           tone="info"
         />
       ) : null}
 
       {overviewData ? (
         <section className="analytics-grid-4">
-          <StatCard label="Latest Import" value={overviewData.latestImportAt ? formatDateTime(overviewData.latestImportAt) : 'Never'} caption="Most recent import batch timestamp" />
-          <StatCard label="Imported Records" value={formatCompactNumber(overviewData.sourceRecordCount)} caption="Source records awaiting resolution" />
+          <StatCard
+            label="Latest Import"
+            value={overviewData.latestImportAt ? formatDateTime(overviewData.latestImportAt) : 'Never'}
+            caption="Most recent import batch timestamp"
+          />
+          {/* Primary data source: source_records. Falls back to raw_observations when source_records is empty. */}
+          {overviewData.rawObservationFallbackActive ? (
+            <StatCard
+              label="Raw Observations"
+              value={formatCompactNumber(overviewData.rawObservationCount)}
+              caption={`Verbatim CSV rows (fallback) · latest ${overviewData.latestRawObservationAt ? formatDateTime(overviewData.latestRawObservationAt) : '—'}`}
+            />
+          ) : (
+            <StatCard
+              label="Imported Records"
+              value={formatCompactNumber(overviewData.sourceRecordCount)}
+              caption="Source records promoted from raw observations"
+            />
+          )}
           <StatCard label="Canonical Works" value={formatCompactNumber(overviewData.trackedWorkCount)} caption="Works available in the catalog" />
           <StatCard label="Franchises / IPs" value={formatCompactNumber(overviewData.activeIpCount)} caption="Tracked intellectual property units" />
           <StatCard label="Review Queue" value={formatCompactNumber(overviewData.reviewQueueCount)} caption="Records needing manual review" />
@@ -93,7 +118,9 @@ export default async function DashboardPage() {
         <SectionCard
           title="Navigation"
           description={overviewData
-            ? `Latest import ${formatDateTime(overviewData.latestImportAt ?? new Date())} · ${overviewData.sourceRecordCount} source records available.`
+            ? overviewData.rawObservationFallbackActive
+              ? `${formatCompactNumber(overviewData.rawObservationCount)} raw observation rows available as fallback data source.`
+              : `Latest import ${formatDateTime(overviewData.latestImportAt ?? new Date())} · ${overviewData.sourceRecordCount} source records available.`
             : 'Open the main dashboard areas while analytics overview data is unavailable.'}
         >
           <div className="analytics-links">

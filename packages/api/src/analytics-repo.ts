@@ -3233,10 +3233,19 @@ export async function getAnalyticsOverview(
     sourceProviderCount: number;
     unresolvedFlagCount: number;
     latestImportAt: string | null;
+    // source_records layer (promoted from raw, may be 0 while pipeline is pending)
     sourceRecordCount: number;
     reviewQueueCount: number;
+    // raw_observations layer — verbatim CSV rows, never modified.
+    // Used as the deepest fallback when source_records is still empty.
+    rawObservationCount: number;
+    latestRawObservationAt: string | null;
+    // pipeline-stage flags
     importedButUnresolved: boolean;
     resolvedButNotScored: boolean;
+    // true when source_records is 0 but raw_observations has rows —
+    // i.e. data arrived but hasn't been promoted to source_records yet
+    rawObservationFallbackActive: boolean;
   }>
 > {
   await requireOrganizationMember(ctx, input.organizationId);
@@ -3252,8 +3261,11 @@ export async function getAnalyticsOverview(
       latestImportAt: null,
       sourceRecordCount: 0,
       reviewQueueCount: 0,
+      rawObservationCount: 0,
+      latestRawObservationAt: null,
       importedButUnresolved: false,
       resolvedButNotScored: false,
+      rawObservationFallbackActive: false,
     },
     async () => {
       const [
@@ -3266,6 +3278,9 @@ export async function getAnalyticsOverview(
         sourceRecordResponse,
         reviewQueueResponse,
         workScoresResponse,
+        // raw_observations fallback — joined through import_batches for org scoping
+        rawObsCountResponse,
+        rawObsLatestResponse,
       ] = await Promise.all([
         listLeaderboardRows(ctx, {
           organizationId: input.organizationId,
@@ -3284,7 +3299,7 @@ export async function getAnalyticsOverview(
           organizationId: input.organizationId,
           unresolvedOnly: true,
         }),
-        // Fallback queries for imported data
+        // source_records layer
         ctx.db
           .select({ count: sql`count(*)` })
           .from(sourceRecords)
@@ -3301,19 +3316,46 @@ export async function getAnalyticsOverview(
         ctx.db
           .select({ count: sql`count(*)` })
           .from(workScores)
-          .where(eq(workScores.organizationId, input.organizationId)),
+          .innerJoin(works, eq(workScores.workId, works.id))
+          .where(eq(works.organizationId, input.organizationId)),
+        // raw_observations layer — scoped via import_batches.organization_id
+        ctx.db
+          .select({ count: sql`count(*)` })
+          .from(rawObservations)
+          .innerJoin(
+            importBatches,
+            eq(rawObservations.importBatchId, importBatches.id),
+          )
+          .where(eq(importBatches.organizationId, input.organizationId)),
+        ctx.db
+          .select({ latestAt: sql`max(${rawObservations.observedAt})` })
+          .from(rawObservations)
+          .innerJoin(
+            importBatches,
+            eq(rawObservations.importBatchId, importBatches.id),
+          )
+          .where(eq(importBatches.organizationId, input.organizationId)),
       ]);
 
       const sourceRecordCount = numberValue(sourceRecordResponse[0]?.count);
       const reviewQueueCount = numberValue(reviewQueueResponse[0]?.count);
       const workScoreCount = numberValue(workScoresResponse[0]?.count);
+      const rawObservationCount = numberValue(rawObsCountResponse[0]?.count);
+      const rawLatestAt = rawObsLatestResponse[0]?.latestAt;
+      const latestRawObservationAt =
+        rawLatestAt != null ? toIsoString(rawLatestAt as Date | string) : null;
+
       const trackedWorks =
         workResponse.status === "ready" ? workResponse.data.length : 0;
 
+      // Pipeline-stage flags
       const importedButUnresolved =
         sourceRecordCount > 0 && trackedWorks === 0;
       const resolvedButNotScored =
         trackedWorks > 0 && workScoreCount === 0;
+      // Deepest fallback: raw rows arrived but haven't been promoted to source_records yet
+      const rawObservationFallbackActive =
+        sourceRecordCount === 0 && rawObservationCount > 0;
 
       return {
         latestScoreDate:
@@ -3338,8 +3380,11 @@ export async function getAnalyticsOverview(
             : null,
         sourceRecordCount,
         reviewQueueCount,
+        rawObservationCount,
+        latestRawObservationAt,
         importedButUnresolved,
         resolvedButNotScored,
+        rawObservationFallbackActive,
       };
     },
   );
