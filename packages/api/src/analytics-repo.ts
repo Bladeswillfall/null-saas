@@ -3301,7 +3301,8 @@ export async function getAnalyticsOverview(
         ctx.db
           .select({ count: sql`count(*)` })
           .from(workScores)
-          .where(eq(workScores.organizationId, input.organizationId)),
+          .innerJoin(works, eq(workScores.workId, works.id))
+          .where(eq(works.organizationId, input.organizationId)),
       ]);
 
       const sourceRecordCount = numberValue(sourceRecordResponse[0]?.count);
