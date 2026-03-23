@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, inArray, isNull, or } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import {
   franchises,
   importBatches,
@@ -3233,6 +3233,10 @@ export async function getAnalyticsOverview(
     sourceProviderCount: number;
     unresolvedFlagCount: number;
     latestImportAt: string | null;
+    sourceRecordCount: number;
+    reviewQueueCount: number;
+    importedButUnresolved: boolean;
+    resolvedButNotScored: boolean;
   }>
 > {
   await requireOrganizationMember(ctx, input.organizationId);
@@ -3246,6 +3250,10 @@ export async function getAnalyticsOverview(
       sourceProviderCount: 0,
       unresolvedFlagCount: 0,
       latestImportAt: null,
+      sourceRecordCount: 0,
+      reviewQueueCount: 0,
+      importedButUnresolved: false,
+      resolvedButNotScored: false,
     },
     async () => {
       const [
@@ -3255,6 +3263,9 @@ export async function getAnalyticsOverview(
         sourceResponse,
         batchResponse,
         qualityResponse,
+        sourceRecordResponse,
+        reviewQueueResponse,
+        workScoresResponse,
       ] = await Promise.all([
         listLeaderboardRows(ctx, {
           organizationId: input.organizationId,
@@ -3273,7 +3284,36 @@ export async function getAnalyticsOverview(
           organizationId: input.organizationId,
           unresolvedOnly: true,
         }),
+        // Fallback queries for imported data
+        ctx.db
+          .select({ count: sql`count(*)` })
+          .from(sourceRecords)
+          .where(eq(sourceRecords.organizationId, input.organizationId)),
+        ctx.db
+          .select({ count: sql`count(*)` })
+          .from(sourceRecords)
+          .where(
+            and(
+              eq(sourceRecords.organizationId, input.organizationId),
+              eq(sourceRecords.ingestionStatus, "needs_review"),
+            ),
+          ),
+        ctx.db
+          .select({ count: sql`count(*)` })
+          .from(workScores)
+          .where(eq(workScores.organizationId, input.organizationId)),
       ]);
+
+      const sourceRecordCount = numberValue(sourceRecordResponse[0]?.count);
+      const reviewQueueCount = numberValue(reviewQueueResponse[0]?.count);
+      const workScoreCount = numberValue(workScoresResponse[0]?.count);
+      const trackedWorks =
+        workResponse.status === "ready" ? workResponse.data.length : 0;
+
+      const importedButUnresolved =
+        sourceRecordCount > 0 && trackedWorks === 0;
+      const resolvedButNotScored =
+        trackedWorks > 0 && workScoreCount === 0;
 
       return {
         latestScoreDate:
@@ -3287,8 +3327,7 @@ export async function getAnalyticsOverview(
             : 0,
         activeIpCount:
           ipResponse.status === "ready" ? ipResponse.data.length : 0,
-        trackedWorkCount:
-          workResponse.status === "ready" ? workResponse.data.length : 0,
+        trackedWorkCount: trackedWorks,
         sourceProviderCount:
           sourceResponse.status === "ready" ? sourceResponse.data.length : 0,
         unresolvedFlagCount:
@@ -3297,6 +3336,10 @@ export async function getAnalyticsOverview(
           batchResponse.status === "ready" && batchResponse.data.length > 0
             ? toIsoString(batchResponse.data[0].createdAt)
             : null,
+        sourceRecordCount,
+        reviewQueueCount,
+        importedButUnresolved,
+        resolvedButNotScored,
       };
     },
   );

@@ -59,12 +59,33 @@ export default async function DashboardPage() {
         />
       ) : null}
 
+      {overviewData?.importedButUnresolved ? (
+        <AnalyticsStateNotice
+          title="Imported data pending resolution"
+          body="Imported data is present, but canonical works have not been resolved yet. Once imports are processed and matched to canonical works, this will reflect in your dashboard."
+          tone="info"
+        />
+      ) : null}
+
+      {overviewData?.resolvedButNotScored ? (
+        <AnalyticsStateNotice
+          title="Canonical works pending scoring"
+          body="Canonical works exist, but scores have not been rebuilt yet. Run the score rebuild process to calculate performance metrics across all works."
+          tone="info"
+        />
+      ) : null}
+
       {overviewData ? (
         <section className="analytics-grid-4">
-          <StatCard label="Top Works" value={formatCompactNumber(overviewData.topWorkCount)} caption="Leaderboard rows in the latest weekly snapshot" />
-          <StatCard label="Active IPs" value={formatCompactNumber(overviewData.activeIpCount)} caption="Tracked franchises currently returned by analytics" />
-          <StatCard label="Tracked Works" value={formatCompactNumber(overviewData.trackedWorkCount)} caption="Canonical works available to score and review" />
-          <StatCard label="Open Flags" value={formatCompactNumber(overviewData.unresolvedFlagCount)} caption="Unresolved quality flags still affecting review readiness" />
+          <StatCard label="Latest Import" value={overviewData.latestImportAt ? formatDateTime(overviewData.latestImportAt) : 'Never'} caption="Most recent import batch timestamp" />
+          <StatCard label="Imported Records" value={formatCompactNumber(overviewData.sourceRecordCount)} caption="Source records awaiting resolution" />
+          <StatCard label="Canonical Works" value={formatCompactNumber(overviewData.trackedWorkCount)} caption="Works available in the catalog" />
+          <StatCard label="Franchises / IPs" value={formatCompactNumber(overviewData.activeIpCount)} caption="Tracked intellectual property units" />
+          <StatCard label="Review Queue" value={formatCompactNumber(overviewData.reviewQueueCount)} caption="Records needing manual review" />
+          <StatCard label="Open Flags" value={formatCompactNumber(overviewData.unresolvedFlagCount)} caption="Unresolved quality flags" />
+          {overviewData.topWorkCount > 0 && (
+            <StatCard label="Top Works" value={formatCompactNumber(overviewData.topWorkCount)} caption="Leaderboard rows in latest snapshot" />
+          )}
         </section>
       ) : null}
 
@@ -72,7 +93,7 @@ export default async function DashboardPage() {
         <SectionCard
           title="Navigation"
           description={overviewData
-            ? `Latest import ${formatDateTime(overviewData.latestImportAt)} · latest score snapshot ${formatDateTime(overviewData.latestScoreDate)}.`
+            ? `Latest import ${formatDateTime(overviewData.latestImportAt ?? new Date())} · ${overviewData.sourceRecordCount} source records available.`
             : 'Open the main dashboard areas while analytics overview data is unavailable.'}
         >
           <div className="analytics-links">
