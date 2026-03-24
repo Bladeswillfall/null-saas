@@ -3,6 +3,7 @@ import { Button } from '@null/ui';
 import { createServerTRPCClient } from '@/lib/trpc/server';
 import { formatCompactNumber, formatDateTime } from '@/lib/analytics';
 import { AnalyticsStateNotice, SectionCard, StatCard } from './_components/analytics-ui';
+import { IPLeaderboardPreview } from './_components/ip-leaderboard-preview';
 
 async function loadDashboardShell() {
   const trpc = await createServerTRPCClient();
@@ -113,6 +114,19 @@ export default async function DashboardPage() {
           )}
         </section>
       ) : null}
+
+      {/* IP Leaderboard Preview — placeholder data until dedicated table is available */}
+      <SectionCard
+        title="IP Leaderboard Preview"
+        description="Placeholder view showing the target leaderboard layout. Data will be replaced once a dedicated scoring table is available."
+        action={
+          <Button asChild variant="secondary">
+            <Link href="/dashboard/leaderboard/ips">View Full Leaderboard</Link>
+          </Button>
+        }
+      >
+        <IPLeaderboardPreview organizationId={organizationId} />
+      </SectionCard>
 
       <section className="analytics-grid-2">
         <SectionCard
