@@ -3,6 +3,7 @@ import { Button } from '@null/ui';
 import { createServerTRPCClient } from '@/lib/trpc/server';
 import { formatCompactNumber, formatDateTime } from '@/lib/analytics';
 import { AnalyticsStateNotice, SectionCard, StatCard } from './_components/analytics-ui';
+import { IPLeaderboardPreview } from './_components/ip-leaderboard-preview';
 
 async function loadDashboardShell() {
   const trpc = await createServerTRPCClient();
@@ -113,6 +114,21 @@ export default async function DashboardPage() {
           )}
         </section>
       ) : null}
+
+      {/* IP Leaderboard Preview — shows real data from ip_scores table */}
+      <SectionCard
+        title="IP Leaderboard"
+        description={overviewData?.activeIpCount 
+          ? `Top performing IPs from ${formatCompactNumber(overviewData.activeIpCount)} tracked franchises.`
+          : 'IP rankings will appear once scoring data is available.'}
+        action={
+          <Button asChild variant="secondary">
+            <Link href="/dashboard/leaderboard/ips">View Full Leaderboard</Link>
+          </Button>
+        }
+      >
+        <IPLeaderboardPreview organizationId={organizationId} />
+      </SectionCard>
 
       <section className="analytics-grid-2">
         <SectionCard
