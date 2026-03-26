@@ -115,10 +115,12 @@ export default async function DashboardPage() {
         </section>
       ) : null}
 
-      {/* IP Leaderboard Preview — placeholder data until dedicated table is available */}
+      {/* IP Leaderboard Preview — shows real data from ip_scores table */}
       <SectionCard
-        title="IP Leaderboard Preview"
-        description="Placeholder view showing the target leaderboard layout. Data will be replaced once a dedicated scoring table is available."
+        title="IP Leaderboard"
+        description={overviewData?.activeIpCount 
+          ? `Top performing IPs from ${formatCompactNumber(overviewData.activeIpCount)} tracked franchises.`
+          : 'IP rankings will appear once scoring data is available.'}
         action={
           <Button asChild variant="secondary">
             <Link href="/dashboard/leaderboard/ips">View Full Leaderboard</Link>
