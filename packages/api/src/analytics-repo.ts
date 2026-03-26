@@ -3221,30 +3221,45 @@ export async function listFreshnessRows(
   });
 }
 
+/**
+ * Data Source Hierarchy (processed in order):
+ * 
+ * 1. PRIMARY: raw_observations — verbatim CSV rows, always loaded first as base truth
+ * 2. ENRICHED: source_records — promoted/parsed records with ingestion status
+ * 3. RESOLVED: works — canonical entities matched from source records
+ * 4. SCORED: work_scores / ip_scores — calculated performance metrics
+ * 5. RANKED: leaderboard snapshots — aggregated ranking data
+ * 
+ * The dashboard always displays raw_observations as the foundational metric,
+ * then overlays enriched/processed data as it becomes available in the pipeline.
+ */
 export async function getAnalyticsOverview(
   ctx: AnalyticsContext,
   input: { organizationId: string },
 ): Promise<
   AnalyticsQueryResult<{
+    // ─── PRIMARY LAYER: raw_observations (always populated first) ───
+    rawObservationCount: number;
+    latestRawObservationAt: string | null;
+    // ─── ENRICHED LAYER: source_records (promoted from raw) ───
+    sourceRecordCount: number;
+    reviewQueueCount: number;
+    // ─── RESOLVED LAYER: canonical works ───
+    trackedWorkCount: number;
+    activeIpCount: number;
+    // ─── SCORED LAYER: performance metrics ───
     latestScoreDate: string | null;
     topWorkCount: number;
-    activeIpCount: number;
-    trackedWorkCount: number;
+    // ─── METADATA ───
     sourceProviderCount: number;
     unresolvedFlagCount: number;
     latestImportAt: string | null;
-    // source_records layer (promoted from raw, may be 0 while pipeline is pending)
-    sourceRecordCount: number;
-    reviewQueueCount: number;
-    // raw_observations layer — verbatim CSV rows, never modified.
-    // Used as the deepest fallback when source_records is still empty.
-    rawObservationCount: number;
-    latestRawObservationAt: string | null;
-    // pipeline-stage flags
+    // ─── PIPELINE STAGE INDICATORS ───
+    // Describes current data processing state for UI messaging
+    pipelineStage: "empty" | "raw_only" | "promoted" | "resolved" | "scored";
+    // Legacy flags (kept for backward compatibility)
     importedButUnresolved: boolean;
     resolvedButNotScored: boolean;
-    // true when source_records is 0 but raw_observations has rows —
-    // i.e. data arrived but hasn't been promoted to source_records yet
     rawObservationFallbackActive: boolean;
   }>
 > {
@@ -3252,17 +3267,24 @@ export async function getAnalyticsOverview(
 
   return withAnalyticsQuery(
     {
+      // Primary layer defaults
+      rawObservationCount: 0,
+      latestRawObservationAt: null,
+      // Enriched layer defaults
+      sourceRecordCount: 0,
+      reviewQueueCount: 0,
+      // Resolved layer defaults
+      trackedWorkCount: 0,
+      activeIpCount: 0,
+      // Scored layer defaults
       latestScoreDate: null,
       topWorkCount: 0,
-      activeIpCount: 0,
-      trackedWorkCount: 0,
+      // Metadata defaults
       sourceProviderCount: 0,
       unresolvedFlagCount: 0,
       latestImportAt: null,
-      sourceRecordCount: 0,
-      reviewQueueCount: 0,
-      rawObservationCount: 0,
-      latestRawObservationAt: null,
+      // Pipeline stage defaults
+      pipelineStage: "empty" as const,
       importedButUnresolved: false,
       resolvedButNotScored: false,
       rawObservationFallbackActive: false,
@@ -3337,39 +3359,66 @@ export async function getAnalyticsOverview(
           .where(eq(importBatches.organizationId, input.organizationId)),
       ]);
 
-      const sourceRecordCount = numberValue(sourceRecordResponse[0]?.count);
-      const reviewQueueCount = numberValue(reviewQueueResponse[0]?.count);
-      const workScoreCount = numberValue(workScoresResponse[0]?.count);
+      // ─── PRIMARY LAYER: raw_observations (always computed first) ───
       const rawObservationCount = numberValue(rawObsCountResponse[0]?.count);
       const rawLatestAt = rawObsLatestResponse[0]?.latestAt;
       const latestRawObservationAt =
         rawLatestAt != null ? toIsoString(rawLatestAt as Date | string) : null;
 
+      // ─── ENRICHED LAYER: source_records ───
+      const sourceRecordCount = numberValue(sourceRecordResponse[0]?.count);
+      const reviewQueueCount = numberValue(reviewQueueResponse[0]?.count);
+
+      // ─── RESOLVED LAYER: canonical works ───
       const trackedWorks =
         workResponse.status === "ready" ? workResponse.data.length : 0;
+      const activeIps =
+        ipResponse.status === "ready" ? ipResponse.data.length : 0;
 
-      // Pipeline-stage flags
+      // ─── SCORED LAYER: performance metrics ───
+      const workScoreCount = numberValue(workScoresResponse[0]?.count);
+      const latestScoreDate =
+        leaderboardResponse.status === "ready" &&
+        leaderboardResponse.data.length > 0
+          ? leaderboardResponse.data[0].latestScoreDate
+          : null;
+      const topWorkCount =
+        leaderboardResponse.status === "ready"
+          ? leaderboardResponse.data.length
+          : 0;
+
+      // ─── COMPUTE PIPELINE STAGE ───
+      // Determines which layer of data is currently the "best available"
+      const pipelineStage = ((): "empty" | "raw_only" | "promoted" | "resolved" | "scored" => {
+        if (workScoreCount > 0 || topWorkCount > 0) return "scored";
+        if (trackedWorks > 0) return "resolved";
+        if (sourceRecordCount > 0) return "promoted";
+        if (rawObservationCount > 0) return "raw_only";
+        return "empty";
+      })();
+
+      // Legacy flags (backward compatibility)
       const importedButUnresolved =
         sourceRecordCount > 0 && trackedWorks === 0;
       const resolvedButNotScored =
         trackedWorks > 0 && workScoreCount === 0;
-      // Deepest fallback: raw rows arrived but haven't been promoted to source_records yet
       const rawObservationFallbackActive =
         sourceRecordCount === 0 && rawObservationCount > 0;
 
       return {
-        latestScoreDate:
-          leaderboardResponse.status === "ready" &&
-          leaderboardResponse.data.length > 0
-            ? leaderboardResponse.data[0].latestScoreDate
-            : null,
-        topWorkCount:
-          leaderboardResponse.status === "ready"
-            ? leaderboardResponse.data.length
-            : 0,
-        activeIpCount:
-          ipResponse.status === "ready" ? ipResponse.data.length : 0,
+        // ─── PRIMARY LAYER (always first) ───
+        rawObservationCount,
+        latestRawObservationAt,
+        // ─── ENRICHED LAYER ───
+        sourceRecordCount,
+        reviewQueueCount,
+        // ─── RESOLVED LAYER ───
         trackedWorkCount: trackedWorks,
+        activeIpCount: activeIps,
+        // ─── SCORED LAYER ───
+        latestScoreDate,
+        topWorkCount,
+        // ─── METADATA ───
         sourceProviderCount:
           sourceResponse.status === "ready" ? sourceResponse.data.length : 0,
         unresolvedFlagCount:
@@ -3378,10 +3427,8 @@ export async function getAnalyticsOverview(
           batchResponse.status === "ready" && batchResponse.data.length > 0
             ? toIsoString(batchResponse.data[0].createdAt)
             : null,
-        sourceRecordCount,
-        reviewQueueCount,
-        rawObservationCount,
-        latestRawObservationAt,
+        // ─── PIPELINE STAGE ───
+        pipelineStage,
         importedButUnresolved,
         resolvedButNotScored,
         rawObservationFallbackActive,

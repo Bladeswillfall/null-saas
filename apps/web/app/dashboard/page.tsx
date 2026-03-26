@@ -60,57 +60,78 @@ export default async function DashboardPage() {
         />
       ) : null}
 
-      {overviewData?.rawObservationFallbackActive ? (
+      {/* Pipeline stage notices — explain current data processing state */}
+      {overviewData?.pipelineStage === 'raw_only' ? (
         <AnalyticsStateNotice
-          title="Showing raw observation data"
-          body={`Source records have not been promoted yet. Displaying ${formatCompactNumber(overviewData.rawObservationCount)} raw observation rows as a fallback. This count will be replaced once import promotion completes.`}
+          title="Raw observations loaded"
+          body={`${formatCompactNumber(overviewData.rawObservationCount)} raw observation rows are available. Source record promotion is pending — once complete, enriched data will appear below.`}
           tone="info"
         />
-      ) : null}
-
-      {!overviewData?.rawObservationFallbackActive && overviewData?.importedButUnresolved ? (
+      ) : overviewData?.pipelineStage === 'promoted' ? (
         <AnalyticsStateNotice
-          title="Imported data pending resolution"
-          body="Source records are present but canonical works have not been resolved yet. Once imports are processed and matched to canonical works, leaderboard and scoring data will appear here."
+          title="Source records promoted"
+          body="Records have been promoted from raw observations. Entity resolution is pending — canonical works will appear once matching completes."
           tone="info"
         />
-      ) : null}
-
-      {overviewData?.resolvedButNotScored ? (
+      ) : overviewData?.pipelineStage === 'resolved' ? (
         <AnalyticsStateNotice
-          title="Canonical works pending scoring"
-          body="Canonical works exist but scores have not been rebuilt yet. Run the score rebuild process to calculate performance metrics across all works."
+          title="Canonical works resolved"
+          body="Works have been matched and resolved. Score calculation is pending — leaderboard rankings will appear after the next scoring run."
           tone="info"
         />
       ) : null}
 
       {overviewData ? (
         <section className="analytics-grid-4">
+          {/* ─── PRIMARY LAYER: raw_observations (always shown first) ─── */}
           <StatCard
-            label="Latest Import"
-            value={overviewData.latestImportAt ? formatDateTime(overviewData.latestImportAt) : 'Never'}
-            caption="Most recent import batch timestamp"
+            label="Raw Observations"
+            value={formatCompactNumber(overviewData.rawObservationCount)}
+            caption={overviewData.latestRawObservationAt 
+              ? `Primary data · latest ${formatDateTime(overviewData.latestRawObservationAt)}`
+              : 'Primary data source · no observations yet'}
           />
-          {/* Primary data source: source_records. Falls back to raw_observations when source_records is empty. */}
-          {overviewData.rawObservationFallbackActive ? (
-            <StatCard
-              label="Raw Observations"
-              value={formatCompactNumber(overviewData.rawObservationCount)}
-              caption={`Verbatim CSV rows (fallback) · latest ${overviewData.latestRawObservationAt ? formatDateTime(overviewData.latestRawObservationAt) : '—'}`}
-            />
-          ) : (
-            <StatCard
-              label="Imported Records"
-              value={formatCompactNumber(overviewData.sourceRecordCount)}
-              caption="Source records promoted from raw observations"
-            />
-          )}
-          <StatCard label="Canonical Works" value={formatCompactNumber(overviewData.trackedWorkCount)} caption="Works available in the catalog" />
-          <StatCard label="Franchises / IPs" value={formatCompactNumber(overviewData.activeIpCount)} caption="Tracked intellectual property units" />
-          <StatCard label="Review Queue" value={formatCompactNumber(overviewData.reviewQueueCount)} caption="Records needing manual review" />
-          <StatCard label="Open Flags" value={formatCompactNumber(overviewData.unresolvedFlagCount)} caption="Unresolved quality flags" />
+          {/* ─── ENRICHED LAYER: source_records ─── */}
+          <StatCard
+            label="Source Records"
+            value={formatCompactNumber(overviewData.sourceRecordCount)}
+            caption={overviewData.sourceRecordCount > 0 
+              ? `Promoted from raw · ${formatCompactNumber(overviewData.reviewQueueCount)} pending review`
+              : 'Awaiting promotion from raw observations'}
+          />
+          {/* ─── RESOLVED LAYER: canonical works ─── */}
+          <StatCard 
+            label="Canonical Works" 
+            value={formatCompactNumber(overviewData.trackedWorkCount)} 
+            caption={overviewData.trackedWorkCount > 0 
+              ? 'Matched entities in catalog'
+              : 'Awaiting entity resolution'}
+          />
+          <StatCard 
+            label="Franchises / IPs" 
+            value={formatCompactNumber(overviewData.activeIpCount)} 
+            caption="Tracked intellectual property units" 
+          />
+          {/* ─── METADATA ─── */}
+          <StatCard 
+            label="Latest Import" 
+            value={overviewData.latestImportAt ? formatDateTime(overviewData.latestImportAt) : 'Never'} 
+            caption="Most recent import batch" 
+          />
+          <StatCard 
+            label="Open Flags" 
+            value={formatCompactNumber(overviewData.unresolvedFlagCount)} 
+            caption="Unresolved quality flags" 
+          />
+          {/* ─── SCORED LAYER: only shown when data exists ─── */}
           {overviewData.topWorkCount > 0 && (
-            <StatCard label="Top Works" value={formatCompactNumber(overviewData.topWorkCount)} caption="Leaderboard rows in latest snapshot" />
+            <StatCard 
+              label="Leaderboard Entries" 
+              value={formatCompactNumber(overviewData.topWorkCount)} 
+              caption={overviewData.latestScoreDate 
+                ? `Scored ${formatDateTime(overviewData.latestScoreDate)}`
+                : 'Latest leaderboard snapshot'}
+            />
           )}
         </section>
       ) : null}
@@ -134,9 +155,7 @@ export default async function DashboardPage() {
         <SectionCard
           title="Navigation"
           description={overviewData
-            ? overviewData.rawObservationFallbackActive
-              ? `${formatCompactNumber(overviewData.rawObservationCount)} raw observation rows available as fallback data source.`
-              : `Latest import ${formatDateTime(overviewData.latestImportAt ?? new Date())} · ${overviewData.sourceRecordCount} source records available.`
+            ? `Pipeline: ${overviewData.pipelineStage} · ${formatCompactNumber(overviewData.rawObservationCount)} raw observations → ${formatCompactNumber(overviewData.sourceRecordCount)} records → ${formatCompactNumber(overviewData.trackedWorkCount)} works`
             : 'Open the main dashboard areas while analytics overview data is unavailable.'}
         >
           <div className="analytics-links">
